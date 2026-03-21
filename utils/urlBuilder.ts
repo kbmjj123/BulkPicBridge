@@ -3,8 +3,9 @@
  * 生成携带正确参数的 bulkpictools.com/import 跳转链接
  */
 
-const MAIN_SITE = 'https://bulkpictools.com';
-const IMPORT_PATH = '/import';
+// export const MAIN_SITE = 'https://bulkpictools.com';
+export const MAIN_SITE = 'http://localhost:3000';
+export const IMPORT_PATH = '/import';
 
 export type ActionType = 'auto_run' | 'upload';
 export type PresetType =

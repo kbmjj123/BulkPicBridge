@@ -317,22 +317,55 @@ export class OverlayButtonManager {
       let importUrl: string;
 
       if (source.type === 'blob') {
-        const sessionId = await saveSession(source.value);
-        importUrl = buildImportUrl({ sid: sessionId, action: 'auto_run' });
+        // ── Blob（签名 CDN canvas 导出 / 页面内 Blob）────────
+        // 流程：Blob → background 存插件 IDB → 返回 sid
+        //       → 打开主站 /import?sid=xxx
+        //       → content script 在主站页面读插件 IDB → postMessage
+        //       → import.vue 存主站 IDB → redirect
+        const resp = await browser.runtime.sendMessage({
+          type: 'SAVE_BLOB_SESSION',
+          blob: source.value,
+          mimeType: source.value.type || 'image/jpeg',
+        });
+
+        if (!resp?.sid) {
+          throw new Error('插件存储失败，未返回 sid');
+        }
+
+        importUrl = buildImportUrl({
+          sid: resp.sid,
+          action: 'auto_run',
+          preset: this.adapter.preset,
+        });
+
       } else if (source.value.startsWith('blob:')) {
+        // ── 页面内 Blob URL → background 代理抓取后存 IDB ────
         const resp = await browser.runtime.sendMessage({
           type: 'FETCH_IMAGE_PROXY',
           url: source.value,
           options: { referer: location.href },
         });
-        importUrl = resp?.sessionId
-          ? buildImportUrl({ sid: resp.sessionId, action: 'auto_run' })
-          : buildImportUrl({ url: source.value, action: 'auto_run' });
+
+        if (!resp?.sid) {
+          throw new Error('代理抓取失败');
+        }
+
+        importUrl = buildImportUrl({
+          sid: resp.sid,
+          action: 'auto_run',
+          preset: this.adapter.preset,
+        });
+
       } else {
-        importUrl = buildImportUrl({ url: source.value, action: 'auto_run' });
+        // ── 普通 URL → 主站直接 fetch，无需中转 ──────────────
+        importUrl = buildImportUrl({
+          url: source.value,
+          action: 'auto_run',
+          preset: this.adapter.preset,
+        });
       }
 
-      // 成功
+      // ── 成功状态，跳转主站 ────────────────────────────────
       mainBtn.className = 'btn btn-main success';
       track('jump_to_main_site', { platform: this.adapter.name });
 
@@ -351,6 +384,7 @@ export class OverlayButtonManager {
       this.setError();
     }
   }
+
 
   private async handleExif(target: HTMLElement) {
     if (!exifBtn) return;

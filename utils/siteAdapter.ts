@@ -8,6 +8,7 @@ export interface SiteAdapter {
   mayUseCanvas?: boolean;
   cleanUrl?: (url: string) => string;
   skipContainerSelector?: string;
+	preset?: string;
 }
 
 /**

@@ -69,6 +69,13 @@ export default defineContentScript({
       manager.destroy();
     });
 
+    // ── 主站 /import 页面：读插件 IDB → postMessage 给页面 ──
+    // content script 运行在主站页面里，但属于插件 Origin，
+    // 可以访问插件的 IndexedDB，是插件到主站的数据桥梁
+    if (MAIN_SITE.indexOf(hostname) > -1 && IMPORT_PATH.indexOf(location.pathname) > -1) {
+      handleImportBridge();
+    }
+
     // 开发模式下挂载 DevTools 调试工具
     if (import.meta.env.DEV) {
       initDevTools();
@@ -348,4 +355,66 @@ function showExifPanel(
 
 function initExifPanel() {
   // 占位：未来可在此预加载 exifReader 模块
+}
+
+// ── Import Bridge：主站 /import 页面的数据中转 ──────────────────
+// 关键设计：content script 无法直接读插件 IDB（Origin 隔离）
+// 必须向 background 发消息，由 background 读 IDB 后返回 Blob
+// background 运行在插件 Origin，有完整的 IDB 访问权限
+
+async function handleImportBridge() {
+  const params = new URLSearchParams(location.search);
+  const sid = params.get('sid');
+
+  if (!sid) return; // url= 方案，主站直接处理，无需中转
+
+  console.log('[BulkPic Bridge] Import bridge 启动, sid:', sid);
+
+  try {
+    // 向 background 请求读取 Blob
+    // background 有插件 Origin，能访问插件 IDB
+    const resp = await browser.runtime.sendMessage({
+      type: 'GET_BLOB_SESSION',
+      sid,
+    });
+
+    if (!resp?.success || !resp?.arrayBuffer) {
+      console.error('[BulkPic Bridge] background 未返回数据:', resp?.error);
+      window.postMessage({
+        source: 'bulkpic-bridge',
+        type: 'SESSION_ERROR',
+        sid,
+        error: resp?.error ?? 'session_not_found',
+      }, location.origin);
+      return;
+    }
+
+    // ArrayBuffer → Blob（Chrome 消息传递不支持 Blob，用 ArrayBuffer 中转）
+    const mimeType = resp.mimeType || 'image/jpeg';
+    const blob = new Blob([resp.arrayBuffer], { type: mimeType });
+
+    console.log('[BulkPic Bridge] 收到数据，重建 Blob:', blob.size, 'bytes,', mimeType);
+
+    // 推送给 import.vue 的 waitForBlobMessage 监听器
+    // postMessage 传 Blob 在同页面内（window → window）是支持的
+    window.postMessage({
+      source: 'bulkpic-bridge',
+      type: 'SESSION_READY',
+      sid,
+      blob,
+      mimeType,
+    }, location.origin);
+
+    // 清理插件 IDB 中的 session
+    browser.runtime.sendMessage({ type: 'DELETE_SESSION', sid });
+
+  } catch (err) {
+    console.error('[BulkPic Bridge] handleImportBridge 出错:', err);
+    window.postMessage({
+      source: 'bulkpic-bridge',
+      type: 'SESSION_ERROR',
+      sid,
+      error: String(err),
+    }, location.origin);
+  }
 }

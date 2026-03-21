@@ -59,6 +59,14 @@ export default defineBackground({
 
       switch (message.type) {
 
+        // Blob 直接存入插件 IDB（content script canvas 导出后调用）
+        case 'SAVE_BLOB_SESSION': {
+          saveBlobSession(message.blob, message.mimeType)
+            .then(sid => sendResponse({ success: true, sid }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+          return true;
+        }
+
         case 'FETCH_IMAGE_PROXY': {
           handleFetchProxy(message.url, message.options ?? {})
             .then(result => sendResponse({ success: true, ...result }))
@@ -88,6 +96,35 @@ export default defineBackground({
           return true;
         }
 
+        // content script 请求读取插件 IDB 中的 Blob（中转给主站页面）
+        // 注意：Chrome 消息传递不支持序列化 Blob
+        // 改为传 ArrayBuffer + mimeType，content script 收到后重建 Blob
+        case 'GET_BLOB_SESSION': {
+          getSession(message.sid)
+            .then(async session => {
+              if (!session?.blob) {
+                sendResponse({ success: false, error: 'session_not_found' });
+                return;
+              }
+              // Blob → ArrayBuffer（可序列化）
+              const arrayBuffer = await session.blob.arrayBuffer();
+              sendResponse({
+                success: true,
+                arrayBuffer,
+                mimeType: session.blob.type || 'image/jpeg',
+              });
+            })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+          return true;
+        }
+
+        // content script 请求清理已传递完成的 session
+        case 'DELETE_SESSION': {
+          deleteSession(message.sid).catch(() => {});
+          sendResponse({ success: true });
+          return false;
+        }
+
         case 'CLEAN_SESSIONS': {
           cleanExpiredSessions().then(() => sendResponse({ success: true }));
           return true;
@@ -99,20 +136,12 @@ export default defineBackground({
     });
 
     // ── 定期清理过期 session（每 15 分钟） ───────────────────
-    // background.ts — defineBackground 的 main() 里，把 alarms 部分改成这样：
-
-		// ── 定期清理过期 session ──────────────────────────────────
-		// 加 optional chaining，alarms 权限缺失时不崩溃
-		if (chrome.alarms) {
-			chrome.alarms.create('clean-sessions', { periodInMinutes: 15 });
-			chrome.alarms.onAlarm.addListener((alarm) => {
-				if (alarm.name === 'clean-sessions') {
-					cleanExpiredSessions();
-				}
-			});
-		} else {
-			console.warn('[BulkPic Bridge] alarms permission not granted, session cleanup disabled');
-		}
+    chrome.alarms.create('clean-sessions', { periodInMinutes: 15 });
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === 'clean-sessions') {
+        cleanExpiredSessions();
+      }
+    });
 
     console.log('[BulkPic Bridge] Service Worker started ✅');
   },
@@ -140,8 +169,8 @@ async function handleFetchProxy(
     return { dataUrl };
   }
 
-  const sessionId = await saveSession(blob, { originalUrl: url });
-  return { sessionId };
+  const sid = await saveSession(blob, { originalUrl: url });
+  return { sessionId: sid };
 }
 
 async function handleBulkImport(
@@ -160,6 +189,16 @@ async function handleBulkImport(
   }
 
   return buildImportUrl({ sources: urls, action: 'auto_run' });
+}
+
+/**
+ * 直接将 Blob 存入插件 IDB，返回 sid
+ * 供 SAVE_BLOB_SESSION 消息处理使用
+ */
+async function saveBlobSession(blob: Blob, mimeType: string): Promise<string> {
+  const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
+  const sid = await saveSession(typedBlob);
+  return sid;
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {
