@@ -1,17 +1,15 @@
 /**
- * resolveImageSource — 图源智能识别
+ * resolveImageSource — 图源识别
  *
- * 签名 CDN（豆包/字节系）策略：
- * 图片已在页面加载完成，直接 canvas.drawImage → toBlob
- * 完全不发任何网络请求，彻底绕过签名校验
+ * 豆包策略：img.src 本身就是带完整签名的可用 URL，
+ * 直接在 content script 里 fetch（带页面 cookie + origin/referer）即可。
+ * 不需要任何 URL 清洗，不需要 canvas，不需要 background 中转。
  */
 
 export type ImageSource =
   | { type: 'url'; value: string }
   | { type: 'blob'; value: Blob }
   | { type: 'unsupported'; reason: string };
-
-// ── 工具函数 ──────────────────────────────────────────────────
 
 function extractUrlFromCss(bg: string): string | null {
   const match = bg.match(/url\(["']?([^"')]+)["']?\)/);
@@ -27,21 +25,22 @@ function isDataUrl(url: string): boolean {
 }
 
 function findDataAttrUrl(element: Element): string | null {
-  const dataAttrs = ['data-src', 'data-origin-src', 'data-original', 'data-origin', 'data-full-src'];
-  let current: Element | null = element;
+  const attrs = ['data-src', 'data-origin-src', 'data-original', 'data-origin', 'data-full-src'];
+  let el: Element | null = element;
   for (let i = 0; i < 5; i++) {
-    if (!current) break;
-    for (const attr of dataAttrs) {
-      const val = current.getAttribute(attr);
+    if (!el) break;
+    for (const attr of attrs) {
+      const val = el.getAttribute(attr);
       if (val && (val.startsWith('http') || val.startsWith('/'))) return val;
     }
-    current = current.parentElement;
+    el = el.parentElement;
   }
   return null;
 }
 
 /**
- * 判断是否为签名 CDN 图片（需要 canvas 导出，禁止 fetch）
+ * 判断是否需要在 content script 里 fetch（而非直接返回 URL）
+ * 这类图片有防盗链，必须带页面 cookie + origin/referer 才能拿到
  */
 export function isSignedCdnUrl(url: string): boolean {
   if (!url || isDataUrl(url) || isBlobUrl(url)) return false;
@@ -54,148 +53,100 @@ export function isSignedCdnUrl(url: string): boolean {
 }
 
 /**
- * 从 img 元素导出 Blob
- *
- * 豆包等跨域图片直接 drawImage 会触发 Tainted canvas 错误。
- * 解决方案：新建一个带 crossOrigin='anonymous' 的 img，
- * 重新加载同一张图片（浏览器通常有缓存，速度很快），
- * 加载成功后再 canvas 导出。
- *
- * 注意：服务器需要返回 Access-Control-Allow-Origin 头才能成功。
- * 豆包的 byteimg CDN 支持 CORS，所以这个方案可行。
+ * 在 content script（页面上下文）里 fetch 图片
+ * 自动携带页面 cookie，手动补 origin + referer
+ * 服务器认为是页面自身请求 → 正常返回
  */
-async function imgElementToBlob(img: HTMLImageElement): Promise<Blob | null> {
-  return new Promise(resolve => {
-    try {
-      // 先尝试直接导出（同源图片可以直接成功）
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { resolve(null); return; }
+export async function fetchWithPageContext(
+  url: string,
+  pageUrl: string
+): Promise<Blob | null> {
+  try {
+    const origin = new URL(pageUrl).origin;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'origin': origin,
+        'referer': origin + '/',
+        'accept': 'image/*,*/*',
+      },
+    });
 
-      try {
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.95);
-        return;
-      } catch {
-        // 跨域 tainted，走下面的 crossOrigin 方案
-      }
-
-      // crossOrigin 方案：重新加载图片，带 CORS 头
-      const corsImg = new Image();
-      corsImg.crossOrigin = 'anonymous';
-
-      corsImg.onload = () => {
-        try {
-          const c2 = document.createElement('canvas');
-          c2.width = corsImg.naturalWidth;
-          c2.height = corsImg.naturalHeight;
-          const ctx2 = c2.getContext('2d');
-          if (!ctx2) { resolve(null); return; }
-          ctx2.drawImage(corsImg, 0, 0);
-          c2.toBlob(blob => resolve(blob), 'image/jpeg', 0.95);
-        } catch (e) {
-          console.warn('[BulkPic] crossOrigin canvas export failed:', e);
-          resolve(null);
-        }
-      };
-
-      corsImg.onerror = () => {
-        console.warn('[BulkPic] crossOrigin image load failed');
-        resolve(null);
-      };
-
-      // 直接用原始 src，浏览器会复用缓存
-      // 豆包 byteimg CDN 支持 CORS，crossOrigin='anonymous' 会触发带
-      // Origin 头的请求，CDN 返回 Access-Control-Allow-Origin，canvas 解锁
-      corsImg.src = img.currentSrc || img.src;
-
-    } catch (e) {
-      console.warn('[BulkPic] imgElementToBlob failed:', e);
-      resolve(null);
+    if (!response.ok) {
+      console.warn('[BulkPic] fetch 失败:', response.status);
+      return null;
     }
-  });
-}
 
-/**
- * 在页面中找到 src 包含指定关键词且尺寸最大的 img 元素
- */
-export function findLargestImg(srcKeyword: string): HTMLImageElement | null {
-  const imgs = [...document.querySelectorAll('img')] as HTMLImageElement[];
-  const matches = imgs.filter(img =>
-    img.src.includes(srcKeyword) && img.complete && img.naturalWidth > 0
-  );
-  if (!matches.length) return null;
-  return matches.reduce((a, b) => a.naturalWidth >= b.naturalWidth ? a : b);
+    const blob = await response.blob();
+    console.log('[BulkPic] fetch 成功:', blob.size, 'bytes,', blob.type);
+    return blob.size > 100 ? blob : null;
+
+  } catch (err) {
+    console.warn('[BulkPic] fetch 出错:', err);
+    return null;
+  }
 }
 
 // ── 主函数 ────────────────────────────────────────────────────
 
 export async function resolveImageSource(
   element: Element,
-  cleanUrl?: (url: string) => string
+  _cleanUrl?: (url: string) => string  // 保留参数兼容性，豆包不再需要清洗
 ): Promise<ImageSource> {
-
-  const clean = (url: string) => cleanUrl ? cleanUrl(url) : url;
 
   if (element.tagName === 'IMG') {
     const img = element as HTMLImageElement;
+    // 直接用 img.src，不做任何清洗
     const src = img.currentSrc || img.src;
 
     if (!src) {
-      // src 为空，找子节点
       const child = element.querySelector('img');
-      if (child) return resolveImageSource(child, cleanUrl);
+      if (child) return resolveImageSource(child);
       return { type: 'unsupported', reason: 'img src 为空' };
     }
 
-    // ① Data URL → 直接转 Blob
     if (isDataUrl(src)) {
       const res = await fetch(src);
       return { type: 'blob', value: await res.blob() };
     }
 
-    // ② 图片已加载完成
     if (img.complete && img.naturalWidth > 0) {
 
-      // ── 签名 CDN：必须 canvas 导出，禁止任何 fetch ──
+      // 签名 CDN：content script fetch（带页面 cookie）
       if (isSignedCdnUrl(src)) {
-        console.log('[BulkPic] Signed CDN → canvas export');
-        const blob = await imgElementToBlob(img);
+        const blob = await fetchWithPageContext(src, location.href);
         if (blob) return { type: 'blob', value: blob };
-        return { type: 'unsupported', reason: '签名图片 canvas 导出失败（跨域 tainted）' };
+        return { type: 'unsupported', reason: '图片请求失败' };
       }
 
-      // ── Blob URL → 直接返回，由 Background 代理 fetch ──
+      // Blob URL
       if (isBlobUrl(src)) {
         return { type: 'url', value: src };
       }
 
-      // ── 普通 URL → 直接返回 ──
-      return { type: 'url', value: clean(src) };
+      // 普通 URL
+      return { type: 'url', value: src };
     }
 
-    // 图片未加载完成，返回 URL 等待
     if (src && !isSignedCdnUrl(src)) {
-      return { type: 'url', value: clean(src) };
+      return { type: 'url', value: src };
     }
 
     return { type: 'unsupported', reason: '图片尚未加载完成' };
   }
 
-  // ③ CSS background-image
+  // CSS background-image
   const bg = getComputedStyle(element).backgroundImage;
   if (bg && bg !== 'none') {
     const url = extractUrlFromCss(bg);
-    if (url) return { type: 'url', value: clean(url) };
+    if (url) return { type: 'url', value: url };
   }
 
-  // ④ 父容器 data-* 属性
+  // 父容器 data-* 属性
   const dataUrl = findDataAttrUrl(element);
-  if (dataUrl) return { type: 'url', value: clean(dataUrl) };
+  if (dataUrl) return { type: 'url', value: dataUrl };
 
-  // ⑤ Canvas 元素
+  // Canvas
   if (element.tagName === 'CANVAS') {
     const canvas = element as HTMLCanvasElement;
     const blob = await new Promise<Blob | null>(resolve =>
@@ -205,9 +156,9 @@ export async function resolveImageSource(
     return { type: 'unsupported', reason: 'Canvas 导出失败' };
   }
 
-  // ⑥ 子节点兜底
+  // 子节点兜底
   const childImg = element.querySelector('img');
-  if (childImg) return resolveImageSource(childImg, cleanUrl);
+  if (childImg) return resolveImageSource(childImg);
 
   return { type: 'unsupported', reason: '无法识别图片来源' };
 }

@@ -317,26 +317,16 @@ export class OverlayButtonManager {
       let importUrl: string;
 
       if (source.type === 'blob') {
-        // ── Blob（签名 CDN canvas 导出 / 页面内 Blob）────────
-        // 流程：Blob → background 存插件 IDB → 返回 sid
-        //       → 打开主站 /import?sid=xxx
-        //       → content script 在主站页面读插件 IDB → postMessage
-        //       → import.vue 存主站 IDB → redirect
+        const arrayBuffer = await source.value.arrayBuffer();
+				
+        const mimeType = source.value.type || 'image/jpeg';
         const resp = await browser.runtime.sendMessage({
           type: 'SAVE_BLOB_SESSION',
-          blob: source.value,
-          mimeType: source.value.type || 'image/jpeg',
+          arrayBuffer: arrayBufferToBase64(arrayBuffer),
+          mimeType,
         });
-
-        if (!resp?.sid) {
-          throw new Error('插件存储失败，未返回 sid');
-        }
-
-        importUrl = buildImportUrl({
-          sid: resp.sid,
-          action: 'auto_run',
-          preset: this.adapter.preset,
-        });
+        if (!resp?.sid) throw new Error('插件存储失败，未返回 sid');
+        importUrl = buildImportUrl({ sid: resp.sid, action: 'auto_run', preset: 'image-compressor' });
 
       } else if (source.value.startsWith('blob:')) {
         // ── 页面内 Blob URL → background 代理抓取后存 IDB ────

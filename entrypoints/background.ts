@@ -58,10 +58,10 @@ export default defineBackground({
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       switch (message.type) {
-
         // Blob 直接存入插件 IDB（content script canvas 导出后调用）
         case 'SAVE_BLOB_SESSION': {
-          saveBlobSession(message.blob, message.mimeType)
+					console.info(message)
+          saveBlobSession(message.arrayBuffer, message.mimeType)
             .then(sid => sendResponse({ success: true, sid }))
             .catch(err => sendResponse({ success: false, error: err.message }));
           return true;
@@ -110,7 +110,7 @@ export default defineBackground({
               const arrayBuffer = await session.blob.arrayBuffer();
               sendResponse({
                 success: true,
-                arrayBuffer,
+                arrayBuffer: arrayBufferToBase64(arrayBuffer),
                 mimeType: session.blob.type || 'image/jpeg',
               });
             })
@@ -157,7 +157,7 @@ async function handleFetchProxy(
   const headers: Record<string, string> = { 'Accept': 'image/*,*/*' };
   if (options.referer) headers['Referer'] = options.referer;
 
-  const response = await fetch(url, { credentials: 'include', headers });
+  const response = await fetch(url, { headers });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
@@ -195,9 +195,10 @@ async function handleBulkImport(
  * 直接将 Blob 存入插件 IDB，返回 sid
  * 供 SAVE_BLOB_SESSION 消息处理使用
  */
-async function saveBlobSession(blob: Blob, mimeType: string): Promise<string> {
-  const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
-  const sid = await saveSession(typedBlob);
+async function saveBlobSession(base64: string, mimeType: string): Promise<string> {
+	const arrayBuffer = base64ToArrayBuffer(base64)
+  const blob = new Blob([arrayBuffer], { type: mimeType });
+  const sid = await saveSession(blob);
   return sid;
 }
 

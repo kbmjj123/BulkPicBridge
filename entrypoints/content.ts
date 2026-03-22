@@ -366,13 +366,17 @@ async function handleImportBridge() {
   const params = new URLSearchParams(location.search);
   const sid = params.get('sid');
 
-  if (!sid) return; // url= 方案，主站直接处理，无需中转
+  if (!sid) return;
 
   console.log('[BulkPic Bridge] Import bridge 启动, sid:', sid);
 
+  // 等待 import.vue 发出 PAGE_READY 信号后再推数据
+  // 避免页面还没 mount 完成就发 postMessage 导致监听器错过消息
+  await waitForPageReady();
+
+  console.log('[BulkPic Bridge] 页面就绪，开始读取数据');
+
   try {
-    // 向 background 请求读取 Blob
-    // background 有插件 Origin，能访问插件 IDB
     const resp = await browser.runtime.sendMessage({
       type: 'GET_BLOB_SESSION',
       sid,
@@ -388,15 +392,12 @@ async function handleImportBridge() {
       }, location.origin);
       return;
     }
+		console.info(resp)
+    const mimeType = resp.mimeType || 'image/png';
+    const blob = new Blob([base64ToArrayBuffer(resp.arrayBuffer)], { type: mimeType });
 
-    // ArrayBuffer → Blob（Chrome 消息传递不支持 Blob，用 ArrayBuffer 中转）
-    const mimeType = resp.mimeType || 'image/jpeg';
-    const blob = new Blob([resp.arrayBuffer], { type: mimeType });
+    console.log('[BulkPic Bridge] 推送 blob 给主站:', blob.size, 'bytes,', mimeType);
 
-    console.log('[BulkPic Bridge] 收到数据，重建 Blob:', blob.size, 'bytes,', mimeType);
-
-    // 推送给 import.vue 的 waitForBlobMessage 监听器
-    // postMessage 传 Blob 在同页面内（window → window）是支持的
     window.postMessage({
       source: 'bulkpic-bridge',
       type: 'SESSION_READY',
@@ -405,11 +406,10 @@ async function handleImportBridge() {
       mimeType,
     }, location.origin);
 
-    // 清理插件 IDB 中的 session
     browser.runtime.sendMessage({ type: 'DELETE_SESSION', sid });
 
   } catch (err) {
-    console.error('[BulkPic Bridge] handleImportBridge 出错:', err);
+    console.error('[BulkPic Bridge] 出错:', err);
     window.postMessage({
       source: 'bulkpic-bridge',
       type: 'SESSION_ERROR',
@@ -417,4 +417,37 @@ async function handleImportBridge() {
       error: String(err),
     }, location.origin);
   }
+}
+
+
+/**
+ * 等待 import.vue 发出 PAGE_READY 信号
+ * import.vue 在 onMounted 里发这个消息，表示监听器已挂载完成
+ * 超时 10 秒后直接继续（兜底，避免永久等待）
+ */
+function waitForPageReady(timeout = 10000): Promise<void> {
+  return new Promise(resolve => {
+    // 如果页面已经 ready（比如 content script 注入比较晚），直接返回
+    if ((window as any).__bulkpicPageReady) {
+      resolve();
+      return;
+    }
+ 
+    const timer = setTimeout(() => {
+      window.removeEventListener('message', handler);
+      console.warn('[BulkPic Bridge] 等待 PAGE_READY 超时，直接继续');
+      resolve();
+    }, timeout);
+ 
+    function handler(event: MessageEvent) {
+      if (event.source !== window) return;
+      if (event.data?.source !== 'bulkpic-bridge-page') return;
+      if (event.data?.type !== 'PAGE_READY') return;
+      clearTimeout(timer);
+      window.removeEventListener('message', handler);
+      resolve();
+    }
+ 
+    window.addEventListener('message', handler);
+  });
 }

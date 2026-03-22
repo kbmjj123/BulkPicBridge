@@ -30,10 +30,10 @@ function cleanDoubaoUrl(url: string): string {
   try {
     const u = new URL(url);
     // 去掉 ~tplv 及其后缀（如 ~tplv-xxx-downsize_watermark_1_5_b.png）
-    u.pathname = u.pathname.replace(/~tplv[^?#]*/, '');
+    // u.pathname = u.pathname.replace(/~tplv[^?#]*/, '');
     return u.toString();
   } catch {
-    return url.replace(/~tplv[^?#]*/, '');
+    return url;
   }
 }
 
