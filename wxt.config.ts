@@ -4,8 +4,8 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-vue'],
 	manifest: {
-    name: 'BulkPic Bridge',
-    description: 'BulkPic Bridge — 从 Midjourney、豆包等平台一键将图片送入 bulkpictools.com 的 29 个处理工具。裁切、压缩、水印、格式转换、EXIF 脱敏，全程本地，不经过任何服务器。',
+    name: 'BulkPicBridge',
+    description: 'Send any web image to BulkPicTools in one hover-click. Works on Midjourney, Doubao, Unsplash, Google Drive & more.',
     version: '1.0.0',
     permissions: ['contextMenus', 'tabs', 'activeTab', 'alarms',
       'scripting'],
@@ -18,7 +18,10 @@ export default defineConfig({
       },
     },
     icons: {
+			'16': 'icon-16.png',
       '32': 'icon-32.png',
+			'48': 'icon-48.png',
+			'96': 'icon-96.png',
       '128': 'icon-128.png',
     },
     // 允许 Content Script 注入所有页面
