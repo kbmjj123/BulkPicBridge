@@ -5,14 +5,14 @@
  * 2. 用 chrome.* API 替代 browser.*，避免 WXT polyfill 在默认 Chrome 里未就绪的问题
  * 3. 所有 API 调用加 optional chaining 防御
  */
-
+const logger = createLogger('background')
 export default defineBackground({
   // ✅ 显式声明需要的权限，WXT 会确保写入 manifest
   persistent: false,
 
   main() {
 
-    console.log('[BulkPic Bridge] Service Worker starting...');
+    logger.log('[BulkPic Bridge] Service Worker starting...');
 
     // ── 右键菜单：先清除旧的，再注册，避免 duplicate id 崩溃 ──
     chrome.contextMenus.removeAll(() => {
@@ -28,7 +28,7 @@ export default defineBackground({
         contexts: ['image'],
       });
 
-      console.log('[BulkPic Bridge] Context menus registered ✅');
+      logger.log('[BulkPic Bridge] Context menus registered ✅');
     });
 
     // ── 右键菜单点击处理 ──────────────────────────────────────
@@ -60,7 +60,7 @@ export default defineBackground({
       switch (message.type) {
         // Blob 直接存入插件 IDB（content script canvas 导出后调用）
         case 'SAVE_BLOB_SESSION': {
-					console.info(message)
+					logger.info(message)
           saveBlobSession(message.arrayBuffer, message.mimeType)
             .then(sid => sendResponse({ success: true, sid }))
             .catch(err => sendResponse({ success: false, error: err.message }));
@@ -143,7 +143,7 @@ export default defineBackground({
       }
     });
 
-    console.log('[BulkPic Bridge] Service Worker started ✅');
+    logger.log('[BulkPic Bridge] Service Worker started ✅');
   },
 });
 

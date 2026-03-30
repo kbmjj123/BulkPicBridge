@@ -11,21 +11,6 @@ export interface SiteAdapter {
 	preset?: string;
 }
 
-/**
- * 豆包 URL 清洗
- *
- * 原始 URL 示例：
- * https://p5-flow-imagex-sign.byteimg.com/path/img.jpeg~tplv-xxx-downsize_watermark_1_5_b.png
- *   ?lk3s=8e244e95&x-expires=2089412545&x-signature=GpMozVf3...
- *
- * 处理逻辑：
- * 1. 去掉 pathname 里的 ~tplv... 后缀（缩略图+水印处理参数）
- * 2. 保留全部 query string（签名参数，有效期到 2036 年）
- *
- * 结果：
- * https://p5-flow-imagex-sign.byteimg.com/path/img.jpeg
- *   ?lk3s=8e244e95&x-expires=2089412545&x-signature=GpMozVf3...
- */
 function cleanDoubaoUrl(url: string): string {
   try {
     const u = new URL(url);

@@ -3,8 +3,7 @@
  * 生成携带正确参数的 bulkpictools.com/import 跳转链接
  */
 
-// export const MAIN_SITE = 'https://bulkpictools.com';
-export const MAIN_SITE = 'http://localhost:3000';
+export const MAIN_SITE = import.meta.env.WXT_BRIDGE_BULKPICTOOLS_URL || 'https://bulkpictools.com';
 export const IMPORT_PATH = '/import';
 
 export type ActionType = 'auto_run' | 'upload';

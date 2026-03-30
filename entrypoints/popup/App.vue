@@ -132,6 +132,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+const logger = createLogger('OverlayButton')
 
 // ── 状态 ──────────────────────────────────────────────────
 const isActive = ref(false);
@@ -189,7 +190,7 @@ async function extractAllImages() {
       extractedImages.value = response.images;
     }
   } catch (err) {
-    console.error('[Popup] Extract error:', err);
+    logger.error('[Popup] Extract error:', err);
   } finally {
     isExtracting.value = false;
   }

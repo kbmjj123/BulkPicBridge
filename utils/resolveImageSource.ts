@@ -5,7 +5,7 @@
  * 直接在 content script 里 fetch（带页面 cookie + origin/referer）即可。
  * 不需要任何 URL 清洗，不需要 canvas，不需要 background 中转。
  */
-
+const logger = createLogger('OverlayButton')
 export type ImageSource =
   | { type: 'url'; value: string }
   | { type: 'blob'; value: Blob }
@@ -73,16 +73,16 @@ export async function fetchWithPageContext(
     });
 
     if (!response.ok) {
-      console.warn('[BulkPic] fetch 失败:', response.status);
+      logger.warn('[BulkPic] fetch 失败:', response.status);
       return null;
     }
 
     const blob = await response.blob();
-    console.log('[BulkPic] fetch 成功:', blob.size, 'bytes,', blob.type);
+    logger.log('[BulkPic] fetch 成功:', blob.size, 'bytes,', blob.type);
     return blob.size > 100 ? blob : null;
 
   } catch (err) {
-    console.warn('[BulkPic] fetch 出错:', err);
+    logger.warn('[BulkPic] fetch 出错:', err);
     return null;
   }
 }

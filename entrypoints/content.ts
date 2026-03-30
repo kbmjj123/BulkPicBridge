@@ -8,7 +8,7 @@
  * 4. 接收来自 background 的消息
  * 5. 统计埋点
  */
-
+const logger = createLogger('content')
 export default defineContentScript({
   matches: ['<all_urls>'],
   runAt: 'document_idle',
@@ -48,7 +48,7 @@ export default defineContentScript({
           const serialized = serializeExtractedImages(images);
           sendResponse({ images: serialized, count: serialized.length });
         }).catch(err => {
-          console.error('[BulkPic] Extract error:', err);
+          logger.error('[BulkPic] Extract error:', err);
           sendResponse({ images: [], count: 0, error: err.message });
         });
 
@@ -121,7 +121,7 @@ async function triggerExifCheck(imageUrl: string) {
         if (blob) exif = await checkExifFromBlob(blob);
       }
     } else {
-      console.warn('[BulkPic] 签名 CDN 图片未在页面找到已加载的 img 元素');
+      logger.warn('[BulkPic] 签名 CDN 图片未在页面找到已加载的 img 元素');
     }
   } else {
     // 普通图片：正常 fetch
@@ -368,13 +368,13 @@ async function handleImportBridge() {
 
   if (!sid) return;
 
-  console.log('[BulkPic Bridge] Import bridge 启动, sid:', sid);
+  logger.log('[BulkPic Bridge] Import bridge 启动, sid:', sid);
 
   // 等待 import.vue 发出 PAGE_READY 信号后再推数据
   // 避免页面还没 mount 完成就发 postMessage 导致监听器错过消息
   await waitForPageReady();
 
-  console.log('[BulkPic Bridge] 页面就绪，开始读取数据');
+  logger.log('[BulkPic Bridge] 页面就绪，开始读取数据');
 
   try {
     const resp = await browser.runtime.sendMessage({
@@ -383,7 +383,7 @@ async function handleImportBridge() {
     });
 
     if (!resp?.success || !resp?.arrayBuffer) {
-      console.error('[BulkPic Bridge] background 未返回数据:', resp?.error);
+      logger.error('[BulkPic Bridge] background 未返回数据:', resp?.error);
       window.postMessage({
         source: 'bulkpic-bridge',
         type: 'SESSION_ERROR',
@@ -392,11 +392,11 @@ async function handleImportBridge() {
       }, location.origin);
       return;
     }
-		console.info(resp)
+		logger.info(resp)
     const mimeType = resp.mimeType || 'image/png';
     const blob = new Blob([base64ToArrayBuffer(resp.arrayBuffer)], { type: mimeType });
 
-    console.log('[BulkPic Bridge] 推送 blob 给主站:', blob.size, 'bytes,', mimeType);
+    logger.log('[BulkPic Bridge] 推送 blob 给主站:', blob.size, 'bytes,', mimeType);
 
     window.postMessage({
       source: 'bulkpic-bridge',
@@ -409,7 +409,7 @@ async function handleImportBridge() {
     browser.runtime.sendMessage({ type: 'DELETE_SESSION', sid });
 
   } catch (err) {
-    console.error('[BulkPic Bridge] 出错:', err);
+    logger.error('[BulkPic Bridge] 出错:', err);
     window.postMessage({
       source: 'bulkpic-bridge',
       type: 'SESSION_ERROR',
@@ -435,7 +435,7 @@ function waitForPageReady(timeout = 10000): Promise<void> {
  
     const timer = setTimeout(() => {
       window.removeEventListener('message', handler);
-      console.warn('[BulkPic Bridge] 等待 PAGE_READY 超时，直接继续');
+      logger.warn('[BulkPic Bridge] 等待 PAGE_READY 超时，直接继续');
       resolve();
     }, timeout);
  

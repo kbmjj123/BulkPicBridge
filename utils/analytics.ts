@@ -14,11 +14,11 @@
 
 // ── 配置 ────────────────────────────────────────────────────
 // 替换为你的 Umami 实例地址和网站 ID
-const UMAMI_ENDPOINT = 'https://analytics.bulkpictools.com/api/send';
-const WEBSITE_ID = 'YOUR_UMAMI_WEBSITE_ID'; // ← 替换
+const UMAMI_ENDPOINT = 'https://cloud.umami.is/api/send';
+const WEBSITE_ID = import.meta.env.WXT_BRIDGE_UMAMI_WEBSITE_ID as string; // ← 替换
 
 // 是否启用统计（开发模式下可设为 false）
-const ANALYTICS_ENABLED = true;
+const ANALYTICS_ENABLED = import.meta.env.WXT_BRIDGE_UMAMI_OPEN === 'true';
 
 // ── 事件类型定义 ─────────────────────────────────────────────
 export type TrackEvent =

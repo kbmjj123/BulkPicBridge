@@ -15,6 +15,8 @@ let exifBtn: HTMLButtonElement | null = null;
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
 let currentTarget: HTMLElement | null = null;
 
+const logger = createLogger('OverlayButton')
+
 const STYLES = `
   :host { all: initial; }
 
@@ -303,7 +305,7 @@ export class OverlayButtonManager {
       const source = await resolveImageSource(target, this.adapter.cleanUrl);
 
       if (source.type === 'unsupported') {
-        console.warn('[BulkPic] resolveImageSource unsupported:', source.reason);
+        logger.warn('[BulkPic] resolveImageSource unsupported:', source.reason);
         this.setError();
         return;
       }
@@ -370,7 +372,7 @@ export class OverlayButtonManager {
       }, 300);
 
     } catch (err) {
-      console.error('[BulkPic] Send error:', err);
+      logger.error('[BulkPic] Send error:', err);
       this.setError();
     }
   }
@@ -405,7 +407,7 @@ export class OverlayButtonManager {
         },
       }));
     } catch (err) {
-      console.error('[BulkPic] EXIF error:', err);
+      logger.error('[BulkPic] EXIF error:', err);
     } finally {
       if (exifBtn) exifBtn.style.opacity = '';
     }

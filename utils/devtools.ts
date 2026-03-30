@@ -13,7 +13,7 @@
  *   BulkPicDev.testExif(url)          // 测试 EXIF 读取
  *   BulkPicDev.clearSessions()        // 清理 IndexedDB
  */
-
+const logger = createLogger('OverlayButton')
 const IS_DEV = import.meta.env.DEV;
 
 export function initDevTools() {
@@ -25,24 +25,24 @@ export function initDevTools() {
     /** 查看当前平台适配器配置 */
     testAdapter() {
       console.group('[BulkPic DevTools] Current Adapter');
-      console.log('Platform:', adapter.name);
-      console.log('Hostname pattern:', adapter.hostname.toString());
-      console.log('Image selector:', adapter.imageSelector);
-      console.log('Container selector:', adapter.containerSelector);
-      console.log('Skip selector:', adapter.skipContainerSelector);
-      console.log('Min size:', `${adapter.minWidth}×${adapter.minHeight}`);
-      console.log('May use Canvas:', adapter.mayUseCanvas);
+      logger.log('Platform:', adapter.name);
+      logger.log('Hostname pattern:', adapter.hostname.toString());
+      logger.log('Image selector:', adapter.imageSelector);
+      logger.log('Container selector:', adapter.containerSelector);
+      logger.log('Skip selector:', adapter.skipContainerSelector);
+      logger.log('Min size:', `${adapter.minWidth}×${adapter.minHeight}`);
+      logger.log('May use Canvas:', adapter.mayUseCanvas);
       console.groupEnd();
       return adapter;
     },
 
     /** 手动触发全页图片提取，查看结果 */
     async extractImages() {
-      console.log('[BulkPic DevTools] Extracting images...');
+      logger.log('[BulkPic DevTools] Extracting images...');
       const images = await extractPageImages(adapter);
       console.group(`[BulkPic DevTools] Found ${images.length} images`);
       images.forEach((img, i) => {
-        console.log(`[${i + 1}] ${img.sourceType} | ${img.width}×${img.height} | ${img.url.slice(0, 80)}...`);
+        logger.log(`[${i + 1}] ${img.sourceType} | ${img.width}×${img.height} | ${img.url.slice(0, 80)}...`);
       });
       console.groupEnd();
       return images;
@@ -50,23 +50,23 @@ export function initDevTools() {
 
     /** 测试图源识别（传入 DOM 元素） */
     async testResolve(element: Element) {
-      console.log('[BulkPic DevTools] Resolving source for:', element);
+      logger.log('[BulkPic DevTools] Resolving source for:', element);
       const result = await resolveImageSource(element, adapter.cleanUrl);
-      console.log('[BulkPic DevTools] Result:', result);
+      logger.log('[BulkPic DevTools] Result:', result);
       return result;
     },
 
     /** 测试 EXIF 读取 */
     async testExif(imageUrl: string) {
       const { checkExifFromUrl, generateRiskReport } = await import('./exifReader');
-      console.log('[BulkPic DevTools] Reading EXIF from:', imageUrl);
+      logger.log('[BulkPic DevTools] Reading EXIF from:', imageUrl);
       const exif = await checkExifFromUrl(imageUrl);
       const report = generateRiskReport(exif);
       console.group('[BulkPic DevTools] EXIF Report');
-      console.log('Risk Level:', report.riskLevel);
-      console.log('Summary:', report.summary);
-      console.log('Risks:', report.risks);
-      console.log('Raw EXIF:', exif?.raw);
+      logger.log('Risk Level:', report.riskLevel);
+      logger.log('Summary:', report.summary);
+      logger.log('Risks:', report.risks);
+      logger.log('Raw EXIF:', exif?.raw);
       console.groupEnd();
       return report;
     },
@@ -74,14 +74,14 @@ export function initDevTools() {
     /** 查看 IndexedDB 中的 session */
     async getSession(sessionId: string) {
       const data = await getSession(sessionId);
-      console.log('[BulkPic DevTools] Session:', data);
+      logger.log('[BulkPic DevTools] Session:', data);
       return data;
     },
 
     /** 清理过期 sessions */
     async clearSessions() {
       await cleanExpiredSessions();
-      console.log('[BulkPic DevTools] Expired sessions cleared');
+      logger.log('[BulkPic DevTools] Expired sessions cleared');
     },
 
     /** 列出页面所有图片元素（不过滤） */
@@ -90,7 +90,7 @@ export function initDevTools() {
       console.group(`[BulkPic DevTools] All <img> elements: ${imgs.length}`);
       imgs.forEach((img, i) => {
         const rect = img.getBoundingClientRect();
-        console.log(
+        logger.log(
           `[${i + 1}]`,
           `${Math.round(rect.width)}×${Math.round(rect.height)}`,
           img.naturalWidth ? `(natural: ${img.naturalWidth}×${img.naturalHeight})` : '(not loaded)',
@@ -125,8 +125,8 @@ export function initDevTools() {
         }
       });
 
-      console.log(`[BulkPic DevTools] Highlighted ${count} target images (blue outline)`);
-      console.log('Run BulkPicDev.clearHighlights() to remove');
+      logger.log(`[BulkPic DevTools] Highlighted ${count} target images (blue outline)`);
+      logger.log('Run BulkPicDev.clearHighlights() to remove');
       return count;
     },
 
@@ -136,11 +136,11 @@ export function initDevTools() {
         (img as HTMLElement).style.outline = '';
         (img as HTMLElement).style.outlineOffset = '';
       });
-      console.log('[BulkPic DevTools] Highlights cleared');
+      logger.log('[BulkPic DevTools] Highlights cleared');
     },
 
     help() {
-      console.log(`
+      logger.log(`
 [BulkPic DevTools] 可用命令：
   BulkPicDev.testAdapter()         — 查看当前平台适配器
   BulkPicDev.extractImages()       — 手动提取页面图片
@@ -158,7 +158,7 @@ export function initDevTools() {
   // 挂载到 window，方便在 Console 中调用
   (window as any).BulkPicDev = devApi;
 
-  console.log(
+  logger.log(
     '%c[BulkPic DevTools] 已启用 | 输入 BulkPicDev.help() 查看命令',
     'background: #0ea5e9; color: white; padding: 2px 8px; border-radius: 4px;'
   );
