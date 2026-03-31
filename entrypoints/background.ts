@@ -66,7 +66,7 @@ export default defineBackground({
             .catch(err => sendResponse({ success: false, error: err.message }));
           return true;
         }
-
+				// 获取图片代理（跨域或需要 Referer 时调用）
         case 'FETCH_IMAGE_PROXY': {
           handleFetchProxy(message.url, message.options ?? {})
             .then(result => sendResponse({ success: true, ...result }))
@@ -87,7 +87,7 @@ export default defineBackground({
         }
 
         case 'OPEN_BULK_IMPORT': {
-          handleBulkImport(message.urls, message.blobs)
+          handleBulkImport(message.urls)
             .then(url => {
               chrome.tabs.create({ url });
               sendResponse({ success: true });
@@ -148,7 +148,15 @@ export default defineBackground({
 });
 
 // ── 辅助函数 ──────────────────────────────────────────────────
+async function fetchAction(url: string){
+	const headers: Record<string, string> = { 'Accept': 'image/*,*/*' };
 
+  const response = await fetch(url, { headers });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+	return await response.blob();
+}
 async function handleFetchProxy(
   url: string,
   options: { referer?: string } = {}
@@ -169,26 +177,21 @@ async function handleFetchProxy(
     return { dataUrl };
   }
 
-  const sid = await saveSession(blob, { originalUrl: url });
+  const sid = await saveSession([blob]);
   return { sessionId: sid };
 }
 
+// 根据传递过来的url，加载url，并存储到indeddb中
 async function handleBulkImport(
-  urls: string[],
-  blobs?: Array<{ data: string; mimeType: string }>
+  urls: string[]
 ): Promise<string> {
-  const hasBlobData = !!(blobs && blobs.length > 0);
-
-  if (shouldUseBlobSession(urls, hasBlobData)) {
-    const combinedBlob = new Blob(
-      [JSON.stringify({ urls, hasBlobData })],
-      { type: 'application/json' }
-    );
-    const sessionId = await saveSession(combinedBlob);
-    return buildImportUrl({ sid: sessionId, action: 'auto_run' });
-  }
-
-  return buildImportUrl({ sources: urls, action: 'auto_run' });
+	let blobs = []
+	for(const url of urls){
+		const blob = await fetchAction(url)
+		blobs.push(blob)
+	}
+	const sessionId = await saveSession(blobs);
+  return buildImportUrl({ sid: sessionId, action: 'auto_run' });
 }
 
 /**
@@ -198,7 +201,7 @@ async function handleBulkImport(
 async function saveBlobSession(base64: string, mimeType: string): Promise<string> {
 	const arrayBuffer = base64ToArrayBuffer(base64)
   const blob = new Blob([arrayBuffer], { type: mimeType });
-  const sid = await saveSession(blob);
+  const sid = await saveSession([blob]);
   return sid;
 }
 

@@ -1,0 +1,8 @@
+{
+	"extName": {
+    "message": "BulkPicBridge"
+  },
+  "extDescription": {
+    "message": "Send any web image to BulkPicTools in one hover-click. Works on Midjourney, Doubao, Unsplash, Google Drive & more."
+  }
+}

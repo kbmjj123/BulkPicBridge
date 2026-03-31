@@ -1,0 +1,8 @@
+{
+	"extName": {
+    "message": "BulkPicBridge"
+  },
+  "extDescription": {
+    "message": "可将任意网页图片发送至 BulkPicTools。支持 Midjourney、豆包、Unsplash、Google Drive 等众多平台。"
+  }
+}

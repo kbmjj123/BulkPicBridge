@@ -15,16 +15,17 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@wxt-dev/i18n": "^0.2.5",
     "vue": "^3.5.29"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.268",
     "@wxt-dev/module-vue": "^1.0.3",
-    "typescript": "^5.9.3",
-    "vue-tsc": "^3.2.5",
-    "wxt": "^0.20.20",
-    "tailwindcss": "^3.4.0",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
-    "@types/chrome": "^0.0.268"
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.2.5",
+    "wxt": "^0.20.20"
   }
 }

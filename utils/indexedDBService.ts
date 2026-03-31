@@ -11,9 +11,7 @@ const SESSION_TTL_MS = 30 * 60 * 1000; // 30 分钟
 
 export interface SessionData {
   id: string;
-  blob: Blob;
-  mimeType: string;
-  originalUrl?: string;
+  blobs: Blob[];
   createdAt: number;
   filename?: string;
 }
@@ -37,18 +35,14 @@ function openDB(): Promise<IDBDatabase> {
  * 存储图片 Blob，返回 sessionId
  */
 export async function saveSession(
-  blob: Blob,
-  options: { originalUrl?: string; filename?: string } = {}
+  blobs: Blob[]
 ): Promise<string> {
   const db = await openDB();
   const id = `bp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
   const data: SessionData = {
     id,
-    blob,
-    mimeType: blob.type || 'image/png',
-    originalUrl: options.originalUrl,
-    filename: options.filename,
+    blobs,
     createdAt: Date.now(),
   };
 

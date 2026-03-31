@@ -132,7 +132,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-const logger = createLogger('OverlayButton')
+const logger = createLogger('App')
 
 // ── 状态 ──────────────────────────────────────────────────
 const isActive = ref(false);
@@ -188,6 +188,7 @@ async function extractAllImages() {
 
     if (response?.images) {
       extractedImages.value = response.images;
+			logger.info('[Popup] Extracted images:', response.images);
     }
   } catch (err) {
     logger.error('[Popup] Extract error:', err);
@@ -225,6 +226,7 @@ function toggleSelect(index: number) {
  * 发送所有提取的图片
  */
 function sendAllImages() {
+	console.info(extractedImages.value)
   const urls = extractedImages.value.map(img => img.url);
   sendImages(urls);
 }
@@ -241,17 +243,11 @@ function sendSelectedImages() {
 
 async function sendImages(urls: string[]) {
   if (urls.length === 0) return;
-
-  if (shouldUseBlobSession(urls)) {
-    // 通过 background 处理大批量
-    await browser.runtime.sendMessage({
-      type: 'OPEN_BULK_IMPORT',
-      urls,
-    });
-  } else {
-    const url = buildImportUrl({ sources: urls, action: 'auto_run' });
-    browser.tabs.create({ url });
-  }
+  // 通过 background 处理大批量
+  await browser.runtime.sendMessage({
+    type: 'OPEN_BULK_IMPORT',
+    urls,
+  });
   window.close();
 }
 </script>

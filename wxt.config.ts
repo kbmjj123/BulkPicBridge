@@ -4,8 +4,9 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-vue'],
 	manifest: {
-    name: 'BulkPicBridge',
-    description: 'Send any web image to BulkPicTools in one hover-click. Works on Midjourney, Doubao, Unsplash, Google Drive & more.',
+    name: '__MSG_extName__',
+    description: '__MSG_extDescription__',
+		default_locale: 'en',
     version: '1.0.0',
     permissions: ['contextMenus', 'tabs', 'activeTab', 'alarms',
       'scripting'],
@@ -13,8 +14,11 @@ export default defineConfig({
     action: {
       default_popup: 'popup/index.html',
       default_icon: {
-        '32': 'icon-32.png',
-        '128': 'icon-128.png',
+        '16': 'icon-16.png',
+				'32': 'icon-32.png',
+				'48': 'icon-48.png',
+				'96': 'icon-96.png',
+				'128': 'icon-128.png',
       },
     },
     icons: {
