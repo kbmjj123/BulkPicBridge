@@ -9,8 +9,7 @@ export default defineConfig({
 		default_locale: 'en',
     version: '1.0.0',
 		privacy_policy: "https://bulkpictools.com/privacy",
-    permissions: ['contextMenus', 'tabs', 'activeTab', 'alarms',
-      'scripting'],
+    permissions: ['contextMenus', 'tabs', 'alarms'],
     host_permissions: ['<all_urls>'],
     action: {
       default_popup: 'popup/index.html',
