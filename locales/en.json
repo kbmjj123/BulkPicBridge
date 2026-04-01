@@ -5,6 +5,8 @@
   "extDescription": {
     "message": "Send any web image to BulkPicTools in one hover-click. Works on Midjourney, Doubao, Unsplash, Google Drive & more."
   },
+	"send_to_bulkpictools": "Send to BulkPicTools",
+	"view_privacy_risk": "View Privacy Risk",
 	"popup": {
 		"brandName": "BulkPic Bridge",
     "brandTagline": "Connect Images to 29 Tools",

@@ -7,6 +7,7 @@
  * - 通过 mouseenter/mouseleave 事件控制显示/隐藏
  * - 完全不干扰豆包等平台的虚拟滚动和懒加载
  */
+import { i18n } from '#imports';
 // ── 全局唯一的悬浮按钮容器（挂载到 body，fixed 定位） ──────────
 let globalHost: HTMLElement | null = null;
 let globalShadow: ShadowRoot | null = null;
@@ -125,16 +126,16 @@ function ensureGlobalHost() {
 
   mainBtn = document.createElement('button');
   mainBtn.className = 'btn btn-main';
-  mainBtn.title = '发送到 BulkPicTools';
+  mainBtn.title = i18n.t('send_to_bulkpictools');
   mainBtn.innerHTML = SVG_SEND + SVG_SPIN + SVG_CHECK;
 
   exifBtn = document.createElement('button');
   exifBtn.className = 'btn btn-exif';
-  exifBtn.title = '查看隐私风险';
+  exifBtn.title = i18n.t('view_privacy_risk');
   exifBtn.innerHTML = SVG_SHIELD;
 
   btnWrap.appendChild(mainBtn);
-  btnWrap.appendChild(exifBtn);
+  // btnWrap.appendChild(exifBtn);
   container.appendChild(btnWrap);
   globalShadow.appendChild(container);
 

@@ -5,6 +5,8 @@
   "extDescription": {
     "message": "可将任意网页图片发送至 BulkPicTools。支持 Midjourney、豆包、Unsplash、Google Drive 等众多平台。"
   },
+	"send_to_bulkpictools": "发送到 BulkPicTools",
+	"view_privacy_risk": "查看隐私风险",
 	"popup": {
 		"brandName": "BulkPic Bridge",
     "brandTagline": "连接图片与29个工具",
