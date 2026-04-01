@@ -30,7 +30,7 @@
       <div class="w-1.5 h-1.5 rounded-full flex-shrink-0"
         :class="isActive ? 'bg-green-500 shadow-green-500/50 shadow-sm' : 'bg-slate-400 dark:bg-slate-600'"></div>
       <span class="text-xs text-slate-600 dark:text-slate-400">
-        {{ isActive ? t('popup.statusActive', {platform: currentPlatform}) : t('popup.statusInactive') }}
+        {{ isActive ? t('popup.statusActive', [currentPlatform]) : t('popup.statusInactive') }}
       </span>
     </div>
 
@@ -101,7 +101,7 @@
     <transition name="slide">
       <div v-if="extractedImages.length > 0" class="px-3 pb-2">
         <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 mb-2">
-          <span>{{ t('popup.foundImages', {count: extractedImages.length}) }}</span>
+          <span>{{ t('popup.foundImages', [extractedImages.length]) }}</span>
           <button class="text-xs text-sky-500 dark:text-sky-400 bg-none border-none cursor-pointer p-0" @click="sendAllImages">
             {{ t('popup.sendAll') }} ↗
           </button>
@@ -127,7 +127,7 @@
           class="w-full mt-2 py-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg text-sm transition-colors cursor-pointer"
           @click="sendSelectedImages"
         >
-          {{ t('popup.sendSelected', {count: selectedImages.size}) }} ↗
+          {{ t('popup.sendSelected', [selectedImages.size]) }} ↗
         </button>
       </div>
     </transition>
@@ -172,6 +172,7 @@ const selectedImages = ref(new Set<number>());
 // ── 初始化 ────────────────────────────────────────────────
 onMounted(async () => {
   // 获取当前 Tab 信息
+	debugger
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab?.url) {
     try {

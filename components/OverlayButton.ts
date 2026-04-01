@@ -303,6 +303,7 @@ export class OverlayButtonManager {
     mainBtn.disabled = true;
 
     try {
+			debugger
       const source = await resolveImageSource(target, this.adapter.cleanUrl);
 
       if (source.type === 'unsupported') {
@@ -345,15 +346,15 @@ export class OverlayButtonManager {
         importUrl = buildImportUrl({
           sid: resp.sid,
           action: 'auto_run',
-          preset: this.adapter.preset,
+          preset: 'image-compressor',
         });
 
       } else {
         // ── 普通 URL → 主站直接 fetch，无需中转 ──────────────
         importUrl = buildImportUrl({
-          url: source.value,
+          url: encodeURIComponent(source.value),
           action: 'auto_run',
-          preset: this.adapter.preset,
+          preset: 'image-compressor',
         });
       }
 

@@ -365,8 +365,9 @@ function initExifPanel() {
 async function handleImportBridge() {
   const params = new URLSearchParams(location.search);
   const sid = params.get('sid');
+	const url = params.get('url')
 
-  if (!sid) return;
+  if (!sid && !url) return;
 
   logger.log('[BulkPic Bridge] Import bridge 启动, sid:', sid);
 
@@ -376,50 +377,52 @@ async function handleImportBridge() {
 
   logger.log('[BulkPic Bridge] 页面就绪，开始读取数据');
 
-  try {
-    const resp = await browser.runtime.sendMessage({
-      type: 'GET_BLOB_SESSION',
-      sid,
-    });
+	if(sid){
+		try {
+			const resp = await browser.runtime.sendMessage({
+				type: 'GET_BLOB_SESSION',
+				sid,
+			});
 
-    if (!resp?.success || !resp?.base64Array) {
-      logger.error('[BulkPic Bridge] background 未返回数据:', resp?.error);
-      window.postMessage({
-        source: 'bulkpic-bridge',
-        type: 'SESSION_ERROR',
-        sid,
-        error: resp?.error ?? 'session_not_found',
-      }, location.origin);
-      return;
-    }
-		logger.info('获取到的内容是--->', resp)
-    const mimeType = resp.mimeType || 'image/png';
-		const blobs = resp.base64Array.map((base64: string) => {
-			const arrayBuffer = base64ToArrayBuffer(base64)
-			return new Blob([arrayBuffer], { type: mimeType });
-		});
+			if (!resp?.success || !resp?.base64Array) {
+				logger.error('[BulkPic Bridge] background 未返回数据:', resp?.error);
+				window.postMessage({
+					source: 'bulkpic-bridge',
+					type: 'SESSION_ERROR',
+					sid,
+					error: resp?.error ?? 'session_not_found',
+				}, location.origin);
+				return;
+			}
+			const mimeType = resp.mimeType || 'image/png';
+			const blobs = resp.base64Array.map((base64: string) => {
+				const arrayBuffer = base64ToArrayBuffer(base64)
+				return new Blob([arrayBuffer], { type: mimeType });
+			});
 
-    logger.log('[BulkPic Bridge] 推送 blob 给主站:', blobs, mimeType);
+			logger.log('[BulkPic Bridge] 推送 blob 给主站:', blobs, mimeType);
 
-    window.postMessage({
-      source: 'bulkpic-bridge',
-      type: 'SESSION_READY',
-      sid,
-      blobs,
-      mimeType,
-    }, location.origin);
+			window.postMessage({
+				source: 'bulkpic-bridge',
+				type: 'SESSION_READY',
+				sid,
+				blobs,
+				mimeType,
+			}, location.origin);
 
-    browser.runtime.sendMessage({ type: 'DELETE_SESSION', sid });
+			browser.runtime.sendMessage({ type: 'DELETE_SESSION', sid });
 
-  } catch (err) {
-    logger.error('[BulkPic Bridge] 出错:', err);
-    window.postMessage({
-      source: 'bulkpic-bridge',
-      type: 'SESSION_ERROR',
-      sid,
-      error: String(err),
-    }, location.origin);
-  }
+		} catch (err) {
+			logger.error('[BulkPic Bridge] 出错:', err);
+			window.postMessage({
+				source: 'bulkpic-bridge',
+				type: 'SESSION_ERROR',
+				sid,
+				error: String(err),
+			}, location.origin);
+		}
+	}
+  
 }
 
 

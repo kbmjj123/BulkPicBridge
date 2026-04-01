@@ -125,6 +125,7 @@ function extractBackgroundImages(minWidth: number, minHeight: number): Extracted
  * 主函数：提取页面所有符合条件的图片
  */
 export async function extractPageImages(adapter: SiteAdapter): Promise<ExtractedImage[]> {
+	debugger
   const results: ExtractedImage[] = [];
   const seenUrls = new Set<string>();
 

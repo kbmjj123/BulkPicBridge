@@ -11,7 +11,7 @@
 		"brandName": "BulkPic Bridge",
     "brandTagline": "Connect Images to 29 Tools",
     "openSite": "Open Website",
-    "statusActive": "Enabled on {platform}",
+    "statusActive": "Enabled on $1",
     "statusInactive": "Current Page: Universal Mode",
     "extractImages": "Extract All Images",
     "extractDesc": "Auto detect & batch capture",
@@ -19,9 +19,9 @@
     "cropDesc": "YouTube Cover, WeChat Header, etc",
     "watermark": "Batch Watermark",
     "watermarkDesc": "Brand protection, process all at once",
-    "foundImages": "Found {count} images",
+    "foundImages": "Found $1 images",
     "sendAll": "Send All",
-    "sendSelected": "Send Selected {count}",
+    "sendSelected": "Send Selected $1",
     "privacyNote": "Images processed locally, no server upload"
 	}
 }
