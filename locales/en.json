@@ -4,5 +4,22 @@
   },
   "extDescription": {
     "message": "Send any web image to BulkPicTools in one hover-click. Works on Midjourney, Doubao, Unsplash, Google Drive & more."
-  }
+  },
+	"popup": {
+		"brandName": "BulkPic Bridge",
+    "brandTagline": "Connect Images to 29 Tools",
+    "openSite": "Open Website",
+    "statusActive": "Enabled on {platform}",
+    "statusInactive": "Current Page: Universal Mode",
+    "extractImages": "Extract All Images",
+    "extractDesc": "Auto detect & batch capture",
+    "cropCompress": "Crop / Compress",
+    "cropDesc": "YouTube Cover, WeChat Header, etc",
+    "watermark": "Batch Watermark",
+    "watermarkDesc": "Brand protection, process all at once",
+    "foundImages": "Found {count} images",
+    "sendAll": "Send All",
+    "sendSelected": "Send Selected {count}",
+    "privacyNote": "Images processed locally, no server upload"
+	}
 }

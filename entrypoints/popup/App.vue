@@ -1,85 +1,91 @@
 <template>
-  <div class="popup">
+  <div class="w-[380px] min-h-[200px] bg-slate-900 pb-2">
     <!-- 头部品牌区 -->
-    <header class="header">
-      <div class="brand">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <header class="flex items-center justify-between px-4 py-3.5 border-b border-slate-800/60">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 bg-gradient-to-br from-sky-500 to-indigo-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5">
             <path d="M4 16L8.586 11.414a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <div>
-          <div class="brand-name">BulkPic Bridge</div>
-          <div class="brand-tagline">连接图片与29个工具</div>
+          <div class="text-sm font-bold text-slate-100 leading-tight">{{ t('popup.brandName') }}</div>
+          <div class="text-xs text-slate-400 leading-tight">{{ t('popup.brandTagline') }}</div>
         </div>
       </div>
-      <a href="https://bulkpictools.com" target="_blank" class="site-link">
-        打开主站 ↗
+      <a href="https://bulkpictools.com" target="_blank" 
+        class="text-xs text-sky-400 px-2 py-1 rounded-md border border-sky-400/30 hover:bg-sky-400/10 transition-all">
+        {{ t('popup.openSite') }} ↗
       </a>
     </header>
 
     <!-- 状态指示器 -->
-    <div class="status-bar">
-      <div :class="['status-dot', isActive ? 'active' : 'inactive']"></div>
-      <span class="status-text">
-        {{ isActive ? `已在 ${currentPlatform} 启用` : '当前页面：通用模式' }}
+    <div class="flex items-center gap-1.5 px-4 py-2 bg-slate-800/20 border-b border-slate-800/40">
+      <div class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        :class="isActive ? 'bg-green-500 shadow-green-500/50 shadow-sm' : 'bg-slate-600'"></div>
+      <span class="text-xs text-slate-400">
+        {{ isActive ? t('popup.statusActive', {platform: currentPlatform}) : t('popup.statusInactive') }}
       </span>
     </div>
 
     <!-- 核心操作区 -->
-    <div class="actions">
+    <div class="p-2.5 flex flex-col gap-1.5">
       <!-- 操作 1：提取本页所有图片 -->
-      <button class="action-btn primary" @click="extractAllImages" :disabled="isExtracting">
-        <div class="btn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="flex items-center gap-3 p-3 bg-slate-800/20 border border-slate-800/30 rounded-xl hover:bg-slate-800/40 hover:border-slate-800/50 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full text-left"
+        :class="isExtracting ? '' : 'group'"
+        @click="extractAllImages" :disabled="isExtracting">
+        <div class="w-9 h-9 bg-sky-400/20 rounded-lg flex items-center justify-center text-sky-400 flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M4 6h16M4 12h16M4 18h7"/>
             <rect x="14" y="14" width="8" height="8" rx="1"/>
           </svg>
         </div>
-        <div class="btn-content">
-          <div class="btn-title">提取本页所有图片</div>
-          <div class="btn-desc">自动识别并批量获取</div>
+        <div class="flex-1">
+          <div class="text-sm font-semibold text-slate-100 leading-tight">{{ t('popup.extractImages') }}</div>
+          <div class="text-xs text-slate-400 mt-0.5 leading-tight">{{ t('popup.extractDesc') }}</div>
         </div>
-        <div class="btn-arrow">
-          <svg v-if="!isExtracting" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="text-slate-600 flex-shrink-0">
+          <svg v-if="!isExtracting" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M9 18l6-6-6-6"/>
           </svg>
-          <div v-else class="spinner"></div>
+          <div v-else class="w-4 h-4 border-2 border-sky-400/30 border-t-sky-400 rounded-full animate-spin"></div>
         </div>
       </button>
 
       <!-- 操作 2：一键裁切/压缩 -->
-      <button class="action-btn" @click="openTool('crop')" >
-        <div class="btn-icon teal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="flex items-center gap-3 p-3 bg-slate-800/20 border border-slate-800/30 rounded-xl hover:bg-slate-800/40 hover:border-slate-800/50 hover:-translate-y-0.5 transition-all w-full text-left"
+        @click="openTool('crop')">
+        <div class="w-9 h-9 bg-teal-400/20 rounded-lg flex items-center justify-center text-teal-400 flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2"/>
           </svg>
         </div>
-        <div class="btn-content">
-          <div class="btn-title">一键裁切 / 压缩</div>
-          <div class="btn-desc">YouTube 封面、公众号头图等</div>
+        <div class="flex-1">
+          <div class="text-sm font-semibold text-slate-100 leading-tight">{{ t('popup.cropCompress') }}</div>
+          <div class="text-xs text-slate-400 mt-0.5 leading-tight">{{ t('popup.cropDesc') }}</div>
         </div>
-        <div class="btn-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="text-slate-600 flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M9 18l6-6-6-6"/>
           </svg>
         </div>
       </button>
 
       <!-- 操作 3：批量加水印 -->
-      <button class="action-btn" @click="openTool('watermark')">
-        <div class="btn-icon purple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="flex items-center gap-3 p-3 bg-slate-800/20 border border-slate-800/30 rounded-xl hover:bg-slate-800/40 hover:border-slate-800/50 hover:-translate-y-0.5 transition-all w-full text-left"
+        @click="openTool('watermark')">
+        <div class="w-9 h-9 bg-purple-400/20 rounded-lg flex items-center justify-center text-purple-400 flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
-        <div class="btn-content">
-          <div class="btn-title">批量加水印</div>
-          <div class="btn-desc">品牌保护，一次处理全部</div>
+        <div class="flex-1">
+          <div class="text-sm font-semibold text-slate-100 leading-tight">{{ t('popup.watermark') }}</div>
+          <div class="text-xs text-slate-400 mt-0.5 leading-tight">{{ t('popup.watermarkDesc') }}</div>
         </div>
-        <div class="btn-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="text-slate-600 flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M9 18l6-6-6-6"/>
           </svg>
         </div>
@@ -88,51 +94,54 @@
 
     <!-- 图片预览区（提取后显示） -->
     <transition name="slide">
-      <div v-if="extractedImages.length > 0" class="image-list">
-        <div class="list-header">
-          <span>找到 {{ extractedImages.length }} 张图片</span>
-          <button class="send-all-btn" @click="sendAllImages">
-            全部发送 ↗
+      <div v-if="extractedImages.length > 0" class="px-3 pb-2">
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-1 mb-2">
+          <span>{{ t('popup.foundImages', {count: extractedImages.length}) }}</span>
+          <button class="text-xs text-sky-400 bg-none border-none cursor-pointer p-0" @click="sendAllImages">
+            {{ t('popup.sendAll') }} ↗
           </button>
         </div>
-        <div class="image-grid">
+        <div class="grid grid-cols-5 gap-1">
           <div
             v-for="(img, i) in extractedImages.slice(0, 9)"
             :key="i"
-            class="image-thumb"
-            :class="{ selected: selectedImages.has(i) }"
+            class="aspect-square rounded-md overflow-hidden cursor-pointer relative border-2 border-transparent transition-colors"
+            :class="selectedImages.has(i) ? 'border-sky-400' : ''"
             @click="toggleSelect(i)"
           >
-            <img :src="img.thumbnail" :alt="`图片 ${i + 1}`" />
-            <div class="thumb-check">✓</div>
+            <img :src="img.thumbnail" :alt="`Image ${i + 1}`" class="w-full h-full object-cover" />
+            <div class="absolute inset-0 bg-sky-400/50 flex items-center justify-center text-white text-lg opacity-0 transition-opacity"
+              :class="selectedImages.has(i) ? 'opacity-100' : ''">✓</div>
           </div>
-          <div v-if="extractedImages.length > 9" class="image-more">
+          <div v-if="extractedImages.length > 9" class="aspect-square rounded-md bg-slate-800/30 flex items-center justify-center text-xs text-slate-400">
             +{{ extractedImages.length - 9 }}
           </div>
         </div>
         <button
           v-if="selectedImages.size > 0"
-          class="send-selected-btn"
+          class="w-full mt-2 py-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg text-sm transition-colors cursor-pointer"
           @click="sendSelectedImages"
         >
-          发送选中 {{ selectedImages.size }} 张 ↗
+          {{ t('popup.sendSelected', {count: selectedImages.size}) }} ↗
         </button>
       </div>
     </transition>
 
     <!-- 隐私说明 -->
-    <div class="privacy-note">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div class="flex items-center gap-1.5 px-4 py-2 text-[10px] text-slate-600 border-t border-slate-800/40">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3 flex-shrink-0 text-slate-500">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       </svg>
-      <span>图片全程本地处理，不经过任何服务器</span>
+      <span>{{ t('popup.privacyNote') }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { i18n } from '#imports';
 const logger = createLogger('App')
+const { t } = i18n;
 
 // ── 状态 ──────────────────────────────────────────────────
 const isActive = ref(false);

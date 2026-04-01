@@ -4,5 +4,22 @@
   },
   "extDescription": {
     "message": "可将任意网页图片发送至 BulkPicTools。支持 Midjourney、豆包、Unsplash、Google Drive 等众多平台。"
-  }
+  },
+	"popup": {
+		"brandName": "BulkPic Bridge",
+    "brandTagline": "连接图片与29个工具",
+    "openSite": "打开主站",
+    "statusActive": "已在 {platform} 启用",
+    "statusInactive": "当前页面：通用模式",
+    "extractImages": "提取本页所有图片",
+    "extractDesc": "自动识别并批量获取",
+    "cropCompress": "一键裁切 / 压缩",
+    "cropDesc": "YouTube 封面、公众号头图等",
+    "watermark": "批量加水印",
+    "watermarkDesc": "品牌保护，一次处理全部",
+    "foundImages": "找到 {count} 张图片",
+    "sendAll": "全部发送",
+    "sendSelected": "发送选中 {count} 张",
+    "privacyNote": "图片全程本地处理，不经过任何服务器"
+	}
 }
