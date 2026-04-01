@@ -13,7 +13,7 @@
  *   BulkPicDev.testExif(url)          // 测试 EXIF 读取
  *   BulkPicDev.clearSessions()        // 清理 IndexedDB
  */
-const logger = createLogger('OverlayButton')
+const logger = createLogger('devtools')
 const IS_DEV = import.meta.env.DEV;
 
 export function initDevTools() {

@@ -102,16 +102,18 @@ export default defineBackground({
         case 'GET_BLOB_SESSION': {
           getSession(message.sid)
             .then(async session => {
-              if (!session?.blob) {
+              if (!session?.blobs) {
                 sendResponse({ success: false, error: 'session_not_found' });
                 return;
               }
               // Blob → ArrayBuffer（可序列化）
-              const arrayBuffer = await session.blob.arrayBuffer();
+							const base64Array = await Promise.all(session.blobs.map(async blob => {
+								const arrayBuffer = await blob.arrayBuffer()
+								return arrayBufferToBase64(arrayBuffer)
+							}))
               sendResponse({
                 success: true,
-                arrayBuffer: arrayBufferToBase64(arrayBuffer),
-                mimeType: session.blob.type || 'image/jpeg',
+                base64Array: base64Array,
               });
             })
             .catch(err => sendResponse({ success: false, error: err.message }));

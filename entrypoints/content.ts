@@ -382,7 +382,7 @@ async function handleImportBridge() {
       sid,
     });
 
-    if (!resp?.success || !resp?.arrayBuffer) {
+    if (!resp?.success || !resp?.base64Array) {
       logger.error('[BulkPic Bridge] background 未返回数据:', resp?.error);
       window.postMessage({
         source: 'bulkpic-bridge',
@@ -392,17 +392,20 @@ async function handleImportBridge() {
       }, location.origin);
       return;
     }
-		logger.info(resp)
+		logger.info('获取到的内容是--->', resp)
     const mimeType = resp.mimeType || 'image/png';
-    const blob = new Blob([base64ToArrayBuffer(resp.arrayBuffer)], { type: mimeType });
+		const blobs = resp.base64Array.map((base64: string) => {
+			const arrayBuffer = base64ToArrayBuffer(base64)
+			return new Blob([arrayBuffer], { type: mimeType });
+		});
 
-    logger.log('[BulkPic Bridge] 推送 blob 给主站:', blob.size, 'bytes,', mimeType);
+    logger.log('[BulkPic Bridge] 推送 blob 给主站:', blobs, mimeType);
 
     window.postMessage({
       source: 'bulkpic-bridge',
       type: 'SESSION_READY',
       sid,
-      blob,
+      blobs,
       mimeType,
     }, location.origin);
 

@@ -320,7 +320,6 @@ export class OverlayButtonManager {
 
       if (source.type === 'blob') {
         const arrayBuffer = await source.value.arrayBuffer();
-				
         const mimeType = source.value.type || 'image/jpeg';
         const resp = await browser.runtime.sendMessage({
           type: 'SAVE_BLOB_SESSION',
