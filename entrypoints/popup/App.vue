@@ -1,7 +1,12 @@
 <template>
-  <div class="w-[380px] min-h-[200px] bg-slate-900 pb-2">
+  <div 
+    class="w-[380px] min-h-[200px] 
+           bg-slate-50 text-slate-900 
+           dark:bg-slate-900 dark:text-slate-100 
+           transition-colors"
+  >
     <!-- 头部品牌区 -->
-    <header class="flex items-center justify-between px-4 py-3.5 border-b border-slate-800/60">
+    <header class="flex items-center justify-between px-4 py-3.5 border-b border-slate-200 dark:border-slate-800/60">
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 bg-gradient-to-br from-sky-500 to-indigo-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5">
@@ -10,21 +15,21 @@
           </svg>
         </div>
         <div>
-          <div class="text-sm font-bold text-slate-100 leading-tight">{{ t('popup.brandName') }}</div>
-          <div class="text-xs text-slate-400 leading-tight">{{ t('popup.brandTagline') }}</div>
+          <div class="text-sm font-bold leading-tight">{{ t('popup.brandName') }}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 leading-tight">{{ t('popup.brandTagline') }}</div>
         </div>
       </div>
       <a href="https://bulkpictools.com" target="_blank" 
-        class="text-xs text-sky-400 px-2 py-1 rounded-md border border-sky-400/30 hover:bg-sky-400/10 transition-all">
+        class="text-xs text-sky-500 dark:text-sky-400 px-2 py-1 rounded-md border border-sky-500/30 dark:border-sky-400/30 hover:bg-sky-500/10 transition-all">
         {{ t('popup.openSite') }} ↗
       </a>
     </header>
 
     <!-- 状态指示器 -->
-    <div class="flex items-center gap-1.5 px-4 py-2 bg-slate-800/20 border-b border-slate-800/40">
+    <div class="flex items-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-slate-800/20 border-b border-slate-200 dark:border-slate-800/40">
       <div class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-        :class="isActive ? 'bg-green-500 shadow-green-500/50 shadow-sm' : 'bg-slate-600'"></div>
-      <span class="text-xs text-slate-400">
+        :class="isActive ? 'bg-green-500 shadow-green-500/50 shadow-sm' : 'bg-slate-400 dark:bg-slate-600'"></div>
+      <span class="text-xs text-slate-600 dark:text-slate-400">
         {{ isActive ? t('popup.statusActive', {platform: currentPlatform}) : t('popup.statusInactive') }}
       </span>
     </div>
@@ -32,20 +37,20 @@
     <!-- 核心操作区 -->
     <div class="p-2.5 flex flex-col gap-1.5">
       <!-- 操作 1：提取本页所有图片 -->
-      <button class="flex items-center gap-3 p-3 bg-slate-800/20 border border-slate-800/30 rounded-xl hover:bg-slate-800/40 hover:border-slate-800/50 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full text-left"
+      <button class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800/30 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-800/50 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full text-left"
         :class="isExtracting ? '' : 'group'"
         @click="extractAllImages" :disabled="isExtracting">
-        <div class="w-9 h-9 bg-sky-400/20 rounded-lg flex items-center justify-center text-sky-400 flex-shrink-0">
+        <div class="w-9 h-9 bg-sky-400/20 rounded-lg flex items-center justify-center text-sky-500 dark:text-sky-400 flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M4 6h16M4 12h16M4 18h7"/>
             <rect x="14" y="14" width="8" height="8" rx="1"/>
           </svg>
         </div>
         <div class="flex-1">
-          <div class="text-sm font-semibold text-slate-100 leading-tight">{{ t('popup.extractImages') }}</div>
-          <div class="text-xs text-slate-400 mt-0.5 leading-tight">{{ t('popup.extractDesc') }}</div>
+          <div class="text-sm font-semibold leading-tight">{{ t('popup.extractImages') }}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{{ t('popup.extractDesc') }}</div>
         </div>
-        <div class="text-slate-600 flex-shrink-0">
+        <div class="text-slate-500 dark:text-slate-600 flex-shrink-0">
           <svg v-if="!isExtracting" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M9 18l6-6-6-6"/>
           </svg>
@@ -54,18 +59,18 @@
       </button>
 
       <!-- 操作 2：一键裁切/压缩 -->
-      <button class="flex items-center gap-3 p-3 bg-slate-800/20 border border-slate-800/30 rounded-xl hover:bg-slate-800/40 hover:border-slate-800/50 hover:-translate-y-0.5 transition-all w-full text-left"
+      <button class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800/30 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-800/50 hover:-translate-y-0.5 transition-all w-full text-left"
         @click="openTool('crop')">
-        <div class="w-9 h-9 bg-teal-400/20 rounded-lg flex items-center justify-center text-teal-400 flex-shrink-0">
+        <div class="w-9 h-9 bg-teal-400/20 rounded-lg flex items-center justify-center text-teal-500 dark:text-teal-400 flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2"/>
           </svg>
         </div>
         <div class="flex-1">
-          <div class="text-sm font-semibold text-slate-100 leading-tight">{{ t('popup.cropCompress') }}</div>
-          <div class="text-xs text-slate-400 mt-0.5 leading-tight">{{ t('popup.cropDesc') }}</div>
+          <div class="text-sm font-semibold leading-tight">{{ t('popup.cropCompress') }}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{{ t('popup.cropDesc') }}</div>
         </div>
-        <div class="text-slate-600 flex-shrink-0">
+        <div class="text-slate-500 dark:text-slate-600 flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M9 18l6-6-6-6"/>
           </svg>
@@ -73,18 +78,18 @@
       </button>
 
       <!-- 操作 3：批量加水印 -->
-      <button class="flex items-center gap-3 p-3 bg-slate-800/20 border border-slate-800/30 rounded-xl hover:bg-slate-800/40 hover:border-slate-800/50 hover:-translate-y-0.5 transition-all w-full text-left"
+      <button class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800/30 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-800/50 hover:-translate-y-0.5 transition-all w-full text-left"
         @click="openTool('watermark')">
-        <div class="w-9 h-9 bg-purple-400/20 rounded-lg flex items-center justify-center text-purple-400 flex-shrink-0">
+        <div class="w-9 h-9 bg-purple-400/20 rounded-lg flex items-center justify-center text-purple-500 dark:text-purple-400 flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
         <div class="flex-1">
-          <div class="text-sm font-semibold text-slate-100 leading-tight">{{ t('popup.watermark') }}</div>
-          <div class="text-xs text-slate-400 mt-0.5 leading-tight">{{ t('popup.watermarkDesc') }}</div>
+          <div class="text-sm font-semibold leading-tight">{{ t('popup.watermark') }}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{{ t('popup.watermarkDesc') }}</div>
         </div>
-        <div class="text-slate-600 flex-shrink-0">
+        <div class="text-slate-500 dark:text-slate-600 flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M9 18l6-6-6-6"/>
           </svg>
@@ -92,12 +97,12 @@
       </button>
     </div>
 
-    <!-- 图片预览区（提取后显示） -->
+    <!-- 图片预览区 -->
     <transition name="slide">
       <div v-if="extractedImages.length > 0" class="px-3 pb-2">
-        <div class="flex items-center justify-between text-xs text-slate-400 pt-1 mb-2">
+        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 mb-2">
           <span>{{ t('popup.foundImages', {count: extractedImages.length}) }}</span>
-          <button class="text-xs text-sky-400 bg-none border-none cursor-pointer p-0" @click="sendAllImages">
+          <button class="text-xs text-sky-500 dark:text-sky-400 bg-none border-none cursor-pointer p-0" @click="sendAllImages">
             {{ t('popup.sendAll') }} ↗
           </button>
         </div>
@@ -106,14 +111,14 @@
             v-for="(img, i) in extractedImages.slice(0, 9)"
             :key="i"
             class="aspect-square rounded-md overflow-hidden cursor-pointer relative border-2 border-transparent transition-colors"
-            :class="selectedImages.has(i) ? 'border-sky-400' : ''"
+            :class="selectedImages.has(i) ? 'border-sky-500 dark:border-sky-400' : ''"
             @click="toggleSelect(i)"
           >
             <img :src="img.thumbnail" :alt="`Image ${i + 1}`" class="w-full h-full object-cover" />
-            <div class="absolute inset-0 bg-sky-400/50 flex items-center justify-center text-white text-lg opacity-0 transition-opacity"
+            <div class="absolute inset-0 bg-sky-500/50 dark:bg-sky-400/50 flex items-center justify-center text-white text-lg opacity-0 transition-opacity"
               :class="selectedImages.has(i) ? 'opacity-100' : ''">✓</div>
           </div>
-          <div v-if="extractedImages.length > 9" class="aspect-square rounded-md bg-slate-800/30 flex items-center justify-center text-xs text-slate-400">
+          <div v-if="extractedImages.length > 9" class="aspect-square rounded-md bg-slate-200 dark:bg-slate-800/30 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400">
             +{{ extractedImages.length - 9 }}
           </div>
         </div>
@@ -128,11 +133,17 @@
     </transition>
 
     <!-- 隐私说明 -->
-    <div class="flex items-center gap-1.5 px-4 py-2 text-[10px] text-slate-600 border-t border-slate-800/40">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3 flex-shrink-0 text-slate-500">
+    <div class="flex items-center gap-1.5 px-4 py-2 text-[10px] text-slate-400 dark:text-slate-600 border-t border-slate-200 dark:border-slate-800/40">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3 flex-shrink-0 text-slate-400 dark:text-slate-500">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       </svg>
-      <span>{{ t('popup.privacyNote') }}</span>
+			<a 
+				href="https://bulkpictools.com/privacy" 
+				target="_blank" 
+				class="hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+			>
+				<span>{{ t('popup.privacyNote') }}</span>
+			</a>
     </div>
   </div>
 </template>

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+	darkMode: 'media', // 关键：手动控制暗黑模式
   content: [
     './entrypoints/**/*.{vue,ts,html}',
     './components/**/*.{vue,ts}',

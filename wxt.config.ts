@@ -8,6 +8,7 @@ export default defineConfig({
     description: '__MSG_extDescription__',
 		default_locale: 'en',
     version: '1.0.0',
+		privacy_policy: "https://bulkpictools.com/privacy",
     permissions: ['contextMenus', 'tabs', 'activeTab', 'alarms',
       'scripting'],
     host_permissions: ['<all_urls>'],
