@@ -34,11 +34,13 @@ function cleanLeonardoUrl(url: string): string {
   }
 }
 
+
+
 export const SITE_ADAPTERS: SiteAdapter[] = [
   {
     hostname: /midjourney\.com$/,
     name: 'Midjourney',
-    imageSelector: 'img[src*="cdn.midjourney.com"], canvas',
+    imageSelector: 'video[src*="cdn.midjourney.com"], canvas',
     minWidth: 200,
     minHeight: 200,
     mayUseCanvas: true,

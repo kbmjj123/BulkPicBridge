@@ -303,7 +303,6 @@ export class OverlayButtonManager {
     mainBtn.disabled = true;
 
     try {
-			debugger
       const source = await resolveImageSource(target, this.adapter.cleanUrl);
 
       if (source.type === 'unsupported') {

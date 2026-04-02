@@ -133,7 +133,14 @@ export async function resolveImageSource(
     }
 
     return { type: 'unsupported', reason: '图片尚未加载完成' };
-  }
+  }else if(element.tagName === 'VIDEO'){
+		const video = element as HTMLVideoElement;
+		const container = video.closest('a[href*="/jobs/"]');
+		const img = container?.querySelector('img[src]') as HTMLImageElement | null;
+		return {
+			type: 'url',value: img?.src || ''
+		}
+	}
 
   // CSS background-image
   const bg = getComputedStyle(element).backgroundImage;
