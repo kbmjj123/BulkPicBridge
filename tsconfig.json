@@ -12,7 +12,7 @@
     "types": ["chrome", "wxt/browser"],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
   },
   "include": ["**/*.ts", "**/*.vue", ".wxt/wxt.d.ts"],
   "exclude": ["node_modules"]

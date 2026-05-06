@@ -201,7 +201,6 @@ async function extractAllImages() {
   try {
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
-		debugger
     // 向 content script 发送提取命令
     const response = await browser.tabs.sendMessage(tab.id, {
       type: 'EXTRACT_ALL_IMAGES',

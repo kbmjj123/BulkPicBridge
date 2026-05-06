@@ -1,0 +1,555 @@
+<template>
+  <div class="sidebar">
+
+    <!-- 顶部品牌栏 -->
+    <header class="header">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="26" fill="#6366f1"/>
+          <rect x="12" y="40" width="44" height="36" rx="8" fill="white" opacity="0.18"/>
+          <circle cx="23" cy="52" r="6" fill="white" opacity="0.55"/>
+          <polyline points="14,72 24,56 34,64 44,50 56,72" fill="none" stroke="white"
+            stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+          <line x1="64" y1="58" x2="78" y2="58" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+          <polyline points="73,52 79,58 73,64" fill="none" stroke="white" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round" opacity="0.65"/>
+          <circle cx="102" cy="40" r="14" fill="white" opacity="0.92"/>
+          <circle cx="102" cy="72" r="10" fill="white" opacity="0.55"/>
+          <circle cx="102" cy="98" r="6.5" fill="white" opacity="0.28"/>
+        </svg>
+        <div>
+          <div class="brand-name">BulkPic Bridge</div>
+          <div class="brand-count" v-if="selectedImages.length > 0">
+            {{ t('sidebar.selected', { count: selectedImages.length }) }}
+          </div>
+        </div>
+      </div>
+      <button v-if="selectedImages.length > 0" class="btn-clear" @click="clearAll">
+        {{ t('sidebar.clearAll') }}
+      </button>
+    </header>
+
+    <!-- 空状态 -->
+    <div v-if="selectedImages.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+      </div>
+      <p class="empty-title">{{ t('sidebar.emptyTitle') }}</p>
+      <p class="empty-desc">{{ t('sidebar.emptyDesc') }}</p>
+    </div>
+
+    <!-- 图片列表 -->
+    <div v-else class="image-list">
+      <transition-group name="list">
+        <div
+          v-for="img in selectedImages"
+          :key="img.url"
+          class="image-item"
+        >
+          <div class="image-thumb">
+            <img :src="img.thumbnail" :alt="img.filename" />
+          </div>
+          <div class="image-info">
+            <div class="image-name">{{ img.filename }}</div>
+            <div class="image-meta">
+              {{ img.width }}×{{ img.height }}
+              <span v-if="img.size"> · {{ formatSize(img.size) }}</span>
+            </div>
+          </div>
+          <button class="btn-remove" @click="removeImage(img.url)" title="移除">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </transition-group>
+    </div>
+
+    <!-- 操作区 -->
+    <div v-if="selectedImages.length > 0" class="action-area">
+
+      <!-- 常用工具快捷按钮 -->
+      <div class="quick-tools">
+        <button
+          v-for="tool in quickToolList"
+          :key="tool.slug"
+          class="tool-btn"
+          :class="{ active: selectedTool === tool.slug }"
+          @click="selectedTool = tool.slug"
+        >
+          {{ getLabel(tool) }}
+        </button>
+      </div>
+
+      <!-- 主 CTA -->
+      <button
+        class="btn-send"
+        :disabled="isSending"
+        @click="sendToMainSite"
+      >
+        <span v-if="!isSending">
+          {{ t('sidebar.send') }} →
+        </span>
+        <span v-else class="sending-state">
+          <span class="spinner"></span>
+          {{ t('sidebar.sending', { current: sendProgress, total: selectedImages.length }) }}
+        </span>
+      </button>
+
+      <!-- 查看全部工具 -->
+      <a href="https://bulkpictools.com" target="_blank" class="btn-all-tools">
+        {{ t('sidebar.allTools') }}
+      </a>
+
+    </div>
+
+  </div>
+</template>
+
+<script setup lang="ts">
+
+// ── 多语言 ────────────────────────────────────────────────────
+const LANG = (() => {
+  const l = (navigator.language || 'en').split('-')[0];
+  return ['zh', 'en', 'ja', 'ko'].includes(l) ? l : 'en';
+})();
+
+const MESSAGES: Record<string, Record<string, string>> = {
+  zh: {
+    'sidebar.selected': '已选 {count} 张图片',
+    'sidebar.clearAll': '清空全部',
+    'sidebar.emptyTitle': '暂无选中图片',
+    'sidebar.emptyDesc': '悬停图片后点击 ☐ 按钮选中',
+    'sidebar.send': '发送到主站处理',
+    'sidebar.sending': '正在处理 {current}/{total}',
+    'sidebar.allTools': '查看全部工具',
+  },
+  en: {
+    'sidebar.selected': '{count} images selected',
+    'sidebar.clearAll': 'Clear all',
+    'sidebar.emptyTitle': 'No images selected',
+    'sidebar.emptyDesc': 'Hover over an image and click ☐ to select',
+    'sidebar.send': 'Send to BulkPicTools',
+    'sidebar.sending': 'Processing {current}/{total}',
+    'sidebar.allTools': 'All tools',
+  },
+  ja: {
+    'sidebar.selected': '{count}枚選択中',
+    'sidebar.clearAll': 'すべてクリア',
+    'sidebar.emptyTitle': '画像が選択されていません',
+    'sidebar.emptyDesc': '画像にホバーして ☐ をクリックして選択',
+    'sidebar.send': 'BulkPicTools に送信',
+    'sidebar.sending': '{current}/{total} を処理中',
+    'sidebar.allTools': 'すべてのツール',
+  },
+};
+
+function t(key: string, params?: Record<string, string | number>): string {
+  const msgs = MESSAGES[LANG] ?? MESSAGES['en'];
+  let text = msgs[key] ?? key;
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      text = text.replace(`{${k}}`, String(v));
+    });
+  }
+  return text;
+}
+
+// ── 状态 ──────────────────────────────────────────────────────
+interface SelectedImage {
+  url: string;
+  thumbnail: string;
+  filename: string;
+  width: number;
+  height: number;
+  size?: number;
+}
+
+const selectedImages = ref<SelectedImage[]>([]);
+const config = ref<RemoteConfig | null>(null);
+const selectedTool = ref('compress');
+const isSending = ref(false);
+const sendProgress = ref(0);
+
+// ── 工具列表（来自远程配置） ──────────────────────────────────
+const quickToolList = computed<ToolConfig[]>(() => {
+  if (!config.value) return [];
+  // Sidebar 显示 default 站点的 menuTools
+  const defaultSite = config.value.sites['default'];
+  return getMenuTools(config.value, defaultSite?.menuTools ?? ['compress']);
+});
+
+function getLabel(tool: ToolConfig): string {
+  return getToolLabel(tool, LANG);
+}
+
+// ── 格式化文件大小 ────────────────────────────────────────────
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+}
+
+// ── 监听来自 content script 的选中变化事件 ───────────────────
+function handleSelectionChange(e: Event) {
+  const detail = (e as CustomEvent).detail as {
+    count: number;
+    images: Array<{ url: string; thumbnail: string }>;
+  };
+
+  // 更新选中列表（保留已有的尺寸信息）
+  selectedImages.value = detail.images.map((img, i) => ({
+    url: img.url,
+    thumbnail: img.thumbnail,
+    filename: `image_${i + 1}.jpg`,
+    width: 0,
+    height: 0,
+  }));
+}
+
+// ── 移除单张图片 ──────────────────────────────────────────────
+function removeImage(url: string) {
+  selectedImages.value = selectedImages.value.filter(img => img.url !== url);
+  // 通知 content script 更新选中状态
+  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+    if (tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: 'DESELECT_IMAGE',
+        url,
+      });
+    }
+  });
+}
+
+// ── 清空全部 ──────────────────────────────────────────────────
+function clearAll() {
+  selectedImages.value = [];
+  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+    if (tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, { type: 'CLEAR_SELECTION' });
+    }
+  });
+}
+
+// ── 发送到主站 ────────────────────────────────────────────────
+async function sendToMainSite() {
+  if (isSending.value || selectedImages.value.length === 0) return;
+  isSending.value = true;
+  sendProgress.value = 0;
+
+  try {
+    const blobs: Blob[] = [];
+
+    for (let i = 0; i < selectedImages.value.length; i++) {
+      const img = selectedImages.value[i];
+      sendProgress.value = i + 1;
+
+      let blob: Blob | null = null;
+
+      if (isSignedCdnUrl(img.url)) {
+        // 需要在当前页面上下文 fetch，通过 content script 中转
+        const resp = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tabId = resp[0]?.id;
+        if (tabId) {
+          const result = await chrome.tabs.sendMessage(tabId, {
+            type: 'FETCH_IMAGE_FOR_SIDEBAR',
+            url: img.url,
+          });
+          if (result?.arrayBuffer) {
+            blob = new Blob([result.arrayBuffer], { type: result.mimeType || 'image/jpeg' });
+          }
+        }
+      } else {
+        const response = await fetch(img.url, { credentials: 'include' });
+        blob = await response.blob();
+      }
+
+      if (blob && blob.size > 100) blobs.push(blob);
+    }
+
+    if (blobs.length === 0) throw new Error('未能获取到任何图片');
+
+    // 批量存入插件 IDB
+    const arrayBuffers = await Promise.all(blobs.map(b => b.arrayBuffer()));
+    const resp = await chrome.runtime.sendMessage({
+      type: 'SAVE_BULK_SESSION',
+      arrayBuffers,
+      mimeTypes: blobs.map(b => b.type || 'image/jpeg'),
+    });
+
+    if (!resp?.sid) throw new Error('存储失败');
+
+    const url = buildImportUrl({
+      sid: resp.sid,
+      action: 'auto_run',
+      preset: selectedTool.value,
+    });
+
+    await chrome.tabs.create({ url });
+    clearAll();
+
+  } catch (err) {
+    console.error('[BulkPic Sidebar] 发送失败:', err);
+  } finally {
+    isSending.value = false;
+    sendProgress.value = 0;
+  }
+}
+
+// ── 生命周期 ──────────────────────────────────────────────────
+onMounted(async () => {
+  config.value = await getConfig();
+  if (quickToolList.value.length > 0) {
+    selectedTool.value = quickToolList.value[0].slug;
+  }
+
+  // 监听 content script 广播的选中变化
+  // Sidebar 是独立页面，通过 chrome.runtime.onMessage 接收
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'SELECTION_CHANGE') {
+      selectedImages.value = message.images ?? [];
+    }
+  });
+});
+</script>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.3;
+}
+
+.brand-count {
+  font-size: 11px;
+  color: #6366f1;
+  margin-top: 1px;
+}
+
+.btn-clear {
+  font-size: 11px;
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.btn-clear:hover { color: #ef4444; }
+
+/* ── 空状态 ── */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 10px;
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+}
+.empty-icon svg { width: 22px; height: 22px; }
+
+.empty-title { font-size: 13px; font-weight: 500; color: #475569; }
+.empty-desc  { font-size: 12px; color: #334155; text-align: center; line-height: 1.5; }
+
+/* ── 图片列表 ── */
+.image-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.image-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  transition: background 0.12s;
+}
+.image-item:hover { background: rgba(255,255,255,0.03); }
+
+.image-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+}
+.image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-info { flex: 1; min-width: 0; }
+
+.image-name {
+  font-size: 12px;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.image-meta { font-size: 11px; color: #475569; margin-top: 2px; }
+
+.btn-remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+.btn-remove:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+.btn-remove svg { width: 14px; height: 14px; }
+
+/* ── 操作区 ── */
+.action-area {
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.quick-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tool-btn {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: #94a3b8;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.tool-btn:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+.tool-btn.active {
+  background: rgba(99,102,241,0.15);
+  border-color: rgba(99,102,241,0.5);
+  color: #818cf8;
+}
+
+.btn-send {
+  width: 100%;
+  padding: 11px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-send:hover:not(:disabled) { background: #4f46e5; }
+.btn-send:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+
+.sending-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-all-tools {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: #475569;
+  text-decoration: none;
+  padding: 4px;
+  transition: color 0.15s;
+}
+.btn-all-tools:hover { color: #6366f1; }
+
+/* ── 列表动画 ── */
+.list-enter-active, .list-leave-active { transition: all 0.2s ease; }
+.list-enter-from { opacity: 0; transform: translateX(-10px); }
+.list-leave-to   { opacity: 0; transform: translateX(10px); }
+</style>
