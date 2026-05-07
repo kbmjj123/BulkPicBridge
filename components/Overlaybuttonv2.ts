@@ -403,7 +403,7 @@ function ensureGlobalHost(
     e.preventDefault();
     e.stopPropagation();
     if (!currentTarget) return;
-    await handleQuickSend(currentTarget, quickBtn, quickTool?.slug ?? 'compress');
+    await handleQuickSend(currentTarget, quickBtn, quickTool?.slug ?? 'image-compressor');
   });
 
   // Checkbox 点击
@@ -629,9 +629,10 @@ async function captureAndSave(target: HTMLElement): Promise<string | null> {
 
   // Blob → ArrayBuffer → background 存 IDB
   const arrayBuffer = await blob.arrayBuffer();
+
   const resp = await browser.runtime.sendMessage({
     type: 'SAVE_BLOB_SESSION',
-    arrayBuffer,
+    arrayBuffer: arrayBufferToBase64(arrayBuffer),
     mimeType: blob.type || 'image/jpeg',
   });
 

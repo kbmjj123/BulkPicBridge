@@ -8,7 +8,7 @@ export default defineConfig({
     description: '__MSG_extDescription__',
 		default_locale: 'en',
     version: '1.0.0',
-    permissions: ['contextMenus', 'tabs', 'alarms'],
+    permissions: ['contextMenus', 'tabs', 'alarms', 'storage', 'sidePanel'],
     host_permissions: ['<all_urls>'],
     action: {
       default_popup: 'popup/index.html',

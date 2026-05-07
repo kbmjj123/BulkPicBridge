@@ -13,8 +13,8 @@
 const logger = createLogger('content')
 
 // 主站域名和导入路径（可配置）
-const MAIN_SITE = ['bulkpictools.com', 'www.bulkpictools.com']
-const IMPORT_PATH = ['/import']
+const MAIN_SITE = import.meta.env.WXT_BRIDGE_BULKPICTOOLS_URL || 'https://bulkpictools.com'
+const IMPORT_PATH = '/import'
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -132,9 +132,9 @@ export default defineContentScript({
     window.addEventListener('beforeunload', () => {
       manager.destroy();
     });
-
     // 主站 /import 页面：数据中转桥接
     if (MAIN_SITE.indexOf(hostname) > -1 && IMPORT_PATH.indexOf(location.pathname) > -1) {
+			console.info('开始检讨')
       handleImportBridge();
     }
 

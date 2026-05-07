@@ -1,20 +1,34 @@
 /**
- * background.ts — Service Worker
- * 修复：
- * 1. contextMenus.removeAll() 防止重复注册崩溃
- * 2. 用 chrome.* API 替代 browser.*，避免 WXT polyfill 在默认 Chrome 里未就绪的问题
- * 3. 所有 API 调用加 optional chaining 防御
+ * background.ts — Service Worker（v1 + v2 合并版）
+ *
+ * 基于用户最新代码，追加 v2 新增逻辑：
+ * 1. 启动时拉取并缓存远程配置（refreshConfig）
+ * 2. SAVE_BULK_SESSION：批量存储多张图片
+ * 3. FORWARD_TO_SIDEBAR：转发选中变化消息给 Sidebar
+ * 4. OPEN_SIDEBAR：打开 chrome.sidePanel
+ * 5. 定时刷新远程配置（24 小时）
  */
+
 const logger = createLogger('background')
+
 export default defineBackground({
-  // ✅ 显式声明需要的权限，WXT 会确保写入 manifest
   persistent: false,
 
   main() {
-
     logger.log('[BulkPic Bridge] Service Worker starting...');
 
-    // ── 右键菜单：先清除旧的，再注册，避免 duplicate id 崩溃 ──
+    // ── v2：启动时刷新远程配置 ──────────────────────────────
+    refreshConfig().then(config => {
+      logger.log('[BulkPic Bridge] 远程配置加载完成, version:', config.version);
+    });
+
+    // ── v2：注册 Sidebar ────────────────────────────────────
+    if (chrome.sidePanel) {
+      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
+        .catch(() => {});
+    }
+
+    // ── 右键菜单：先清除旧的，再注册 ───────────────────────
     chrome.contextMenus.removeAll(() => {
       chrome.contextMenus.create({
         id: 'send-to-bulkpic',
@@ -31,7 +45,7 @@ export default defineBackground({
       logger.log('[BulkPic Bridge] Context menus registered ✅');
     });
 
-    // ── 右键菜单点击处理 ──────────────────────────────────────
+    // ── 右键菜单点击处理 ────────────────────────────────────
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       const srcUrl = info.srcUrl;
       if (!srcUrl) return;
@@ -54,19 +68,29 @@ export default defineBackground({
       }
     });
 
-    // ── 消息路由：来自 Content Script ────────────────────────
+    // ── 消息路由 ────────────────────────────────────────────
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       switch (message.type) {
-        // Blob 直接存入插件 IDB（content script canvas 导出后调用）
+
+        // 单张图片：base64 → Blob → 存 IDB → 返回 sid
         case 'SAVE_BLOB_SESSION': {
-					logger.info(message)
+          logger.info('[SAVE_BLOB_SESSION]', message);
           saveBlobSession(message.arrayBuffer, message.mimeType)
             .then(sid => sendResponse({ success: true, sid }))
             .catch(err => sendResponse({ success: false, error: err.message }));
           return true;
         }
-				// 获取图片代理（跨域或需要 Referer 时调用）
+
+        // v2：批量图片：多个 ArrayBuffer → 存 IDB → 返回 sid
+        case 'SAVE_BULK_SESSION': {
+          handleSaveBulkSession(message.arrayBuffers, message.mimeTypes)
+            .then(sid => sendResponse({ success: true, sid }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+          return true;
+        }
+
+        // 代理 fetch（Blob URL 或需要特殊请求头时）
         case 'FETCH_IMAGE_PROXY': {
           handleFetchProxy(message.url, message.options ?? {})
             .then(result => sendResponse({ success: true, ...result }))
@@ -86,6 +110,7 @@ export default defineBackground({
           return false;
         }
 
+        // 批量 URL fetch → 存 IDB → 跳转
         case 'OPEN_BULK_IMPORT': {
           handleBulkImport(message.urls)
             .then(url => {
@@ -96,9 +121,8 @@ export default defineBackground({
           return true;
         }
 
-        // content script 请求读取插件 IDB 中的 Blob（中转给主站页面）
-        // 注意：Chrome 消息传递不支持序列化 Blob
-        // 改为传 ArrayBuffer + mimeType，content script 收到后重建 Blob
+        // content script 请求读取插件 IDB（主站 /import 桥接）
+        // Chrome 消息传递不支持 Blob，转为 base64Array 传输
         case 'GET_BLOB_SESSION': {
           getSession(message.sid)
             .then(async session => {
@@ -106,23 +130,45 @@ export default defineBackground({
                 sendResponse({ success: false, error: 'session_not_found' });
                 return;
               }
-              // Blob → ArrayBuffer（可序列化）
-							const base64Array = await Promise.all(session.blobs.map(async blob => {
-								const arrayBuffer = await blob.arrayBuffer()
-								return arrayBufferToBase64(arrayBuffer)
-							}))
+              const base64Array = await Promise.all(
+                session.blobs.map(async (blob: Blob) => {
+                  const arrayBuffer = await blob.arrayBuffer();
+                  return arrayBufferToBase64(arrayBuffer);
+                })
+              );
               sendResponse({
                 success: true,
-                base64Array: base64Array,
+                base64Array,
+                mimeType: session.blobs[0]?.type || 'image/png',
               });
             })
             .catch(err => sendResponse({ success: false, error: err.message }));
           return true;
         }
 
-        // content script 请求清理已传递完成的 session
+        // 清理 session
         case 'DELETE_SESSION': {
           deleteSession(message.sid).catch(() => {});
+          sendResponse({ success: true });
+          return false;
+        }
+
+        // v2：转发消息给 Sidebar（Sidebar 是独立页面，无法直接接收 content script 消息）
+        case 'FORWARD_TO_SIDEBAR': {
+          chrome.runtime.sendMessage(message.payload).catch(() => {});
+          sendResponse({ success: true });
+          return false;
+        }
+
+        // v2：Popup 请求打开 Sidebar
+        case 'OPEN_SIDEBAR': {
+          if (chrome.sidePanel) {
+            chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+              if (tabs[0]?.id) {
+                chrome.sidePanel.open({ tabId: tabs[0].id }).catch(() => {});
+              }
+            });
+          }
           sendResponse({ success: true });
           return false;
         }
@@ -137,12 +183,13 @@ export default defineBackground({
       }
     });
 
-    // ── 定期清理过期 session（每 15 分钟） ───────────────────
+    // ── 定时任务 ────────────────────────────────────────────
     chrome.alarms.create('clean-sessions', { periodInMinutes: 15 });
+    chrome.alarms.create('refresh-config', { periodInMinutes: 1440 }); // 24 小时
+
     chrome.alarms.onAlarm.addListener((alarm) => {
-      if (alarm.name === 'clean-sessions') {
-        cleanExpiredSessions();
-      }
+      if (alarm.name === 'clean-sessions') cleanExpiredSessions();
+      if (alarm.name === 'refresh-config') refreshConfig();
     });
 
     logger.log('[BulkPic Bridge] Service Worker started ✅');
@@ -150,20 +197,38 @@ export default defineBackground({
 });
 
 // ── 辅助函数 ──────────────────────────────────────────────────
-async function fetchAction(url: string){
-	const headers: Record<string, string> = { 'Accept': 'image/*,*/*' };
 
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-	return await response.blob();
+/**
+ * 单张 base64 → Blob → 存 IDB
+ */
+async function saveBlobSession(base64: string, mimeType: string): Promise<string> {
+  const arrayBuffer = base64ToArrayBuffer(base64);
+  const blob = new Blob([arrayBuffer], { type: mimeType });
+  return saveSession([blob]);
 }
+
+/**
+ * v2：批量 ArrayBuffer → Blob[] → 存 IDB
+ * Sidebar 批量发送时使用
+ */
+async function handleSaveBulkSession(
+  arrayBuffers: ArrayBuffer[],
+  mimeTypes: string[]
+): Promise<string> {
+  const blobs = arrayBuffers.map((ab, i) =>
+    new Blob([ab], { type: mimeTypes[i] || 'image/jpeg' })
+  );
+  return saveSession(blobs);
+}
+
+/**
+ * 代理 fetch（Blob URL 或需要 Referer 的场景）
+ * 注意：签名 CDN（豆包 byteimg）不走这里，由 content script 在页面上下文 fetch
+ */
 async function handleFetchProxy(
   url: string,
   options: { referer?: string } = {}
 ): Promise<{ sessionId?: string; dataUrl?: string }> {
-
   const headers: Record<string, string> = { 'Accept': 'image/*,*/*' };
   if (options.referer) headers['Referer'] = options.referer;
 
@@ -183,30 +248,59 @@ async function handleFetchProxy(
   return { sessionId: sid };
 }
 
-// 根据传递过来的url，加载url，并存储到indeddb中
-async function handleBulkImport(
-  urls: string[]
-): Promise<string> {
-	let blobs = []
-	for(const url of urls){
-		const blob = await fetchAction(url)
-		blobs.push(blob)
-	}
-	const sessionId = await saveSession(blobs);
+/**
+ * 批量 URL fetch → 存 IDB → 返回跳转 URL
+ */
+async function handleBulkImport(urls: string[]): Promise<string> {
+  const blobs: Blob[] = [];
+  for (const url of urls) {
+    const blob = await fetchAction(url);
+    blobs.push(blob);
+  }
+  const sessionId = await saveSession(blobs);
   return buildImportUrl({ sid: sessionId, action: 'auto_run' });
 }
 
 /**
- * 直接将 Blob 存入插件 IDB，返回 sid
- * 供 SAVE_BLOB_SESSION 消息处理使用
+ * 简单 fetch 图片
  */
-async function saveBlobSession(base64: string, mimeType: string): Promise<string> {
-	const arrayBuffer = base64ToArrayBuffer(base64)
-  const blob = new Blob([arrayBuffer], { type: mimeType });
-  const sid = await saveSession([blob]);
-  return sid;
+async function fetchAction(url: string): Promise<Blob> {
+  const response = await fetch(url, {
+    headers: { 'Accept': 'image/*,*/*' },
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  return response.blob();
 }
 
+/**
+ * ArrayBuffer → base64 字符串（用于 Chrome 消息传递）
+ */
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+/**
+ * base64 → ArrayBuffer
+ */
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+/**
+ * Blob → Data URL（小图直接传输用）
+ */
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

@@ -98,8 +98,8 @@ async function fetchRemoteConfig(): Promise<RemoteConfig | null> {
  */
 async function getCachedConfig(ignoreExpiry = false): Promise<RemoteConfig | null> {
   try {
-    const result = await chrome.storage.local.get(CACHE_KEY);
-    const cached = result[CACHE_KEY] as CachedConfig | undefined;
+    const result = await storage.getItem<CachedConfig>(`local:${CACHE_KEY}`) as CachedConfig;
+    const cached = result as CachedConfig | undefined;
     if (!cached) return null;
 
     const isExpired = Date.now() - cached.fetchedAt > CACHE_TTL_MS;
@@ -120,7 +120,7 @@ async function getCachedConfig(ignoreExpiry = false): Promise<RemoteConfig | nul
 async function saveCachedConfig(config: RemoteConfig): Promise<void> {
   try {
     const cached: CachedConfig = { config, fetchedAt: Date.now() };
-    await chrome.storage.local.set({ [CACHE_KEY]: cached });
+		await storage.setItem(`local:${CACHE_KEY}`, cached);
   } catch (err) {
     console.warn('[BulkPic] 配置缓存保存失败:', err);
   }
