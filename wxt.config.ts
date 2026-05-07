@@ -28,7 +28,7 @@ export default defineConfig({
       '128': 'icon-128.png',
     },
 		side_panel: {
-      default_path: 'sidebar/index.html',
+      default_path: 'sidepanel/index.html',
     },
     // 允许 Content Script 注入所有页面
     content_security_policy: {

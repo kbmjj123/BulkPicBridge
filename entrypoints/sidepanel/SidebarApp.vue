@@ -111,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-
+import { ref, computed,onMounted } from 'vue'
 // ── 多语言 ────────────────────────────────────────────────────
 const LANG = (() => {
   const l = (navigator.language || 'en').split('-')[0];
@@ -260,7 +260,7 @@ async function sendToMainSite() {
             url: img.url,
           });
           if (result?.arrayBuffer) {
-            blob = new Blob([result.arrayBuffer], { type: result.mimeType || 'image/jpeg' });
+            blob = new Blob([base64ToArrayBuffer(result.arrayBuffer)], { type: result.mimeType || 'image/jpeg' });
           }
         }
       } else {
@@ -274,7 +274,7 @@ async function sendToMainSite() {
     if (blobs.length === 0) throw new Error('未能获取到任何图片');
 
     // 批量存入插件 IDB
-    const arrayBuffers = await Promise.all(blobs.map(b => b.arrayBuffer()));
+    const arrayBuffers = await Promise.all(blobs.map(async b => arrayBufferToBase64(await b.arrayBuffer())));
     const resp = await chrome.runtime.sendMessage({
       type: 'SAVE_BULK_SESSION',
       arrayBuffers,
@@ -311,7 +311,9 @@ onMounted(async () => {
   // Sidebar 是独立页面，通过 chrome.runtime.onMessage 接收
   chrome.runtime.onMessage.addListener((message) => {
     if (message.type === 'SELECTION_CHANGE') {
+			console.info('[BulkPic Sidebar] 选中图片变化')
       selectedImages.value = message.images ?? [];
+			console.info('[BulkPic Sidebar] 选中的图片:', selectedImages.value)
     }
   });
 });

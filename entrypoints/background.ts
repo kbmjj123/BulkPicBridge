@@ -155,6 +155,7 @@ export default defineBackground({
 
         // v2：转发消息给 Sidebar（Sidebar 是独立页面，无法直接接收 content script 消息）
         case 'FORWARD_TO_SIDEBAR': {
+					logger.log('[FORWARD_TO_SIDEBAR]', message);
           chrome.runtime.sendMessage(message.payload).catch(() => {});
           sendResponse({ success: true });
           return false;
@@ -208,15 +209,15 @@ async function saveBlobSession(base64: string, mimeType: string): Promise<string
 }
 
 /**
- * v2：批量 ArrayBuffer → Blob[] → 存 IDB
+ * v2：批量 string[base64] → Blob[] → 存 IDB
  * Sidebar 批量发送时使用
  */
 async function handleSaveBulkSession(
-  arrayBuffers: ArrayBuffer[],
+  arrayBuffers: string[],
   mimeTypes: string[]
 ): Promise<string> {
   const blobs = arrayBuffers.map((ab, i) =>
-    new Blob([ab], { type: mimeTypes[i] || 'image/jpeg' })
+    new Blob([base64ToArrayBuffer(ab)], { type: mimeTypes[i] || 'image/jpeg' })
   );
   return saveSession(blobs);
 }

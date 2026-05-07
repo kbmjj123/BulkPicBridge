@@ -90,7 +90,7 @@ export default defineContentScript({
             const arrayBuffer = await blob.arrayBuffer();
             sendResponse({
               success: true,
-              arrayBuffer,
+              arrayBuffer: arrayBufferToBase64(arrayBuffer),
               mimeType: blob.type || 'image/jpeg',
             });
           })
@@ -124,6 +124,10 @@ export default defineContentScript({
     // v2：选中变化 → 广播给 Sidebar（通过 background 转发）
     window.addEventListener('bulkpic:selectionChange', (e: Event) => {
       const detail = (e as CustomEvent).detail;
+			logger.log('[BulkPic] Selection change:', detail.images);
+			browser.runtime.sendMessage({
+				type: 'OPEN_SIDEBAR',
+			})
       browser.runtime.sendMessage({
         type: 'FORWARD_TO_SIDEBAR',
         payload: {
