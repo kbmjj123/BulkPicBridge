@@ -43,24 +43,15 @@
 
     <!-- 图片列表 -->
     <div v-else class="image-list">
-      <transition-group name="list">
+      <transition-group name="grid" tag="div" class="image-grid">
         <div
           v-for="img in selectedImages"
           :key="img.url"
-          class="image-item"
+          class="grid-item"
         >
-          <div class="image-thumb">
-            <img :src="img.thumbnail" :alt="img.filename" />
-          </div>
-          <div class="image-info">
-            <div class="image-name">{{ img.filename }}</div>
-            <div class="image-meta">
-              {{ img.width }}×{{ img.height }}
-              <span v-if="img.size"> · {{ formatSize(img.size) }}</span>
-            </div>
-          </div>
+          <img :src="img.thumbnail" :alt="img.filename" class="grid-img" />
           <button class="btn-remove" @click="removeImage(img.url)" title="移除">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/>
               <line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -171,27 +162,14 @@ interface SelectedImage {
 
 const selectedImages = ref<SelectedImage[]>([]);
 const config = ref<RemoteConfig | null>(null);
-const selectedTool = ref('compress');
+const siteConfig = ref<SiteConfig & { minWidth: number; minHeight: number } | null>(null);
+const selectedTool = ref('image-compressor');
+const quickToolList = ref<ToolConfig[]>([]);
 const isSending = ref(false);
 const sendProgress = ref(0);
 
-// ── 工具列表（来自远程配置） ──────────────────────────────────
-const quickToolList = computed<ToolConfig[]>(() => {
-  if (!config.value) return [];
-  // Sidebar 显示 default 站点的 menuTools
-  const defaultSite = config.value.sites['default'];
-  return getMenuTools(config.value, defaultSite?.menuTools ?? ['compress']);
-});
-
 function getLabel(tool: ToolConfig): string {
   return getToolLabel(tool, LANG);
-}
-
-// ── 格式化文件大小 ────────────────────────────────────────────
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 }
 
 // ── 监听来自 content script 的选中变化事件 ───────────────────
@@ -302,7 +280,19 @@ async function sendToMainSite() {
 
 // ── 生命周期 ──────────────────────────────────────────────────
 onMounted(async () => {
+	let hostname = '';
+	try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url = tabs[0]?.url;
+    if (url) {
+      hostname = new URL(url).hostname;
+    }
+  } catch {
+    hostname = '';
+  }
   config.value = await getConfig();
+	siteConfig.value = getSiteConfig(config.value, hostname);
+	quickToolList.value = getMenuTools(config.value, siteConfig.value.menuTools);
   if (quickToolList.value.length > 0) {
     selectedTool.value = quickToolList.value[0].slug;
   }
@@ -407,65 +397,64 @@ body {
 .empty-title { font-size: 13px; font-weight: 500; color: #475569; }
 .empty-desc  { font-size: 12px; color: #334155; text-align: center; line-height: 1.5; }
 
-/* ── 图片列表 ── */
-.image-list {
+/* ── 图片列表：九宫格 ── */
+.image-grid-wrap {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 10px 12px;
 }
-
-.image-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  transition: background 0.12s;
+ 
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
 }
-.image-item:hover { background: rgba(255,255,255,0.03); }
-
-.image-thumb {
-  width: 44px;
-  height: 44px;
+ 
+.grid-item {
+  position: relative;
+  aspect-ratio: 1;
   border-radius: 6px;
   overflow: hidden;
-  flex-shrink: 0;
   background: rgba(255,255,255,0.06);
 }
-.image-thumb img {
+ 
+.grid-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
 }
-
-.image-info { flex: 1; min-width: 0; }
-
-.image-name {
-  font-size: 12px;
-  color: #cbd5e1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4;
+.grid-item:hover .grid-img {
+  transform: scale(1.04);
 }
-
-.image-meta { font-size: 11px; color: #475569; margin-top: 2px; }
-
+ 
 .btn-remove {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  background: transparent;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
-  flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
+  color: rgba(255,255,255,0.8);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  backdrop-filter: blur(2px);
+  padding: 0;
 }
-.btn-remove:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
-.btn-remove svg { width: 14px; height: 14px; }
+.grid-item:hover .btn-remove { opacity: 1; }
+.btn-remove:hover {
+  background: rgba(239, 68, 68, 0.85);
+  color: white;
+}
+.btn-remove svg { width: 10px; height: 10px; }
+ 
 
 /* ── 操作区 ── */
 .action-area {
