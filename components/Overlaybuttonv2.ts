@@ -236,15 +236,15 @@ const ICONS = {
 
 // 工具图标映射（slug → SVG path）
 const TOOL_ICON_MAP: Record<string, string> = {
-  'compress':        'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2',
-  'resize':          'M21 21H3M21 3v18M3 3h18M8 8l8 8M16 8H8v8',
-  'crop':            'M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14',
+  'image-compressor':        'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2',
+  'image-resizer':          'M21 21H3M21 3v18M3 3h18M8 8l8 8M16 8H8v8',
+  'image-cropper':            'M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14',
   'watermark-add':   'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
   'watermark-remove':'M9 9l6 6m0-6l-6 6M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
 };
 
 function getToolIcon(slug: string): string {
-  const path = TOOL_ICON_MAP[slug] ?? TOOL_ICON_MAP['compress'];
+  const path = TOOL_ICON_MAP[slug] ?? TOOL_ICON_MAP['image-compressor'];
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:#94a3b8;fill:none;flex-shrink:0"><path d="${path}"/></svg>`;
 }
 

@@ -183,7 +183,7 @@ export function getMenuTools(
   const toolMap = new Map(config.tools.map(t => [t.slug, t]));
   return menuToolSlugs
     .map(slug => toolMap.get(slug))
-    .filter((t): t is ToolConfig => !!t && t.enabled)
+    .filter((t): t is ToolConfig => !!t)
     .sort((a, b) => a.order - b.order);
 }
 
@@ -194,7 +194,7 @@ export function getQuickTool(
   config: RemoteConfig,
   slug: string
 ): ToolConfig | null {
-  return config.tools.find(t => t.slug === slug && t.enabled) ?? null;
+  return config.tools.find(t => t.slug === slug) ?? null;
 }
 
 /**

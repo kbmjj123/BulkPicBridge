@@ -43,14 +43,14 @@ function findDataAttrUrl(element: Element): string | null {
  * 这类图片有防盗链，必须带页面 cookie + origin/referer 才能拿到
  */
 export function isSignedCdnUrl(url: string): boolean {
-  // if (!url || isDataUrl(url) || isBlobUrl(url)) return false;
-  // return (
-  //   url.includes('byteimg.com') ||
-  //   url.includes('imagex-sign') ||
-  //   url.includes('x-signature') ||
-  //   url.includes('x-expires')
-  // );
-	return false
+  if (!url || isDataUrl(url) || isBlobUrl(url)) return false;
+  return (
+    url.includes('byteimg.com') ||
+    url.includes('imagex-sign') ||
+    url.includes('x-signature') ||
+    url.includes('x-expires')
+  );
+	// return false
 }
 
 /**
