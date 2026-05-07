@@ -92,7 +92,7 @@
       </button>
 
       <!-- 查看全部工具 -->
-      <a href="https://bulkpictools.com" target="_blank" class="btn-all-tools">
+      <a href="https://bulkpictools.com/tools" target="_blank" class="btn-all-tools">
         {{ t('sidebar.allTools') }}
       </a>
 
@@ -408,6 +408,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
+	padding: 6px;
 }
  
 .grid-item {
