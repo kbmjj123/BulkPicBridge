@@ -82,7 +82,7 @@ export default defineBackground({
           return true;
         }
 
-        // v2：批量图片：多个 ArrayBuffer → 存 IDB → 返回 sid
+        // v2：批量图片：多个 base64 → 存 IDB → 返回 sid
         case 'SAVE_BULK_SESSION': {
           handleSaveBulkSession(message.arrayBuffers, message.mimeTypes)
             .then(sid => sendResponse({ success: true, sid }))
