@@ -15,6 +15,7 @@ const logger = createLogger('content')
 // 主站域名和导入路径（可配置）
 const MAIN_SITE = import.meta.env.WXT_BRIDGE_BULKPICTOOLS_URL || 'https://bulkpictools.com'
 const IMPORT_PATH = '/import'
+const BUTTON_FORBIDEN_HOST = ['bulkpictools.com', import.meta.env.WXT_BRIDGE_BULKPICTOOLS_URL]
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -36,9 +37,13 @@ export default defineContentScript({
 
     const siteConfig = getSiteConfig(config, hostname);
 
-    // ── 初始化 OverlayButtonManager v2（三按钮） ────────────
-    const manager = new OverlayButtonManager(config, hostname);
-    manager.init();
+		let manager: OverlayButtonManager | null = null;
+		if(BUTTON_FORBIDEN_HOST.findIndex(item => item.indexOf(hostname) > -1) === -1){
+			// ── 初始化 OverlayButtonManager v2（三按钮） ────────────
+			manager = new OverlayButtonManager(config, hostname);
+			manager.init();
+		}
+    
 
     // 埋点：平台适配命中
     trackAdapterMatch(hostname);
@@ -130,7 +135,7 @@ export default defineContentScript({
 
     // 页面卸载时清理
     window.addEventListener('beforeunload', () => {
-      manager.destroy();
+      manager && manager.destroy();
     });
     // 主站 /import 页面：数据中转桥接
     if (MAIN_SITE.indexOf(hostname) > -1 && IMPORT_PATH.indexOf(location.pathname) > -1) {
