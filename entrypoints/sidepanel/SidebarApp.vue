@@ -20,7 +20,7 @@
         <div>
           <div class="brand-name">BulkPic Bridge</div>
           <div class="brand-count" v-if="selectedImages.length > 0">
-            {{ t('sidebar.selected', { count: selectedImages.length }) }}
+            {{ t('sidebar.selected', [selectedImages.length]) }}
           </div>
         </div>
       </div>
@@ -87,7 +87,7 @@
         </span>
         <span v-else class="sending-state">
           <span class="spinner"></span>
-          {{ t('sidebar.sending', { current: sendProgress, total: selectedImages.length }) }}
+          {{ t('sidebar.sending', [sendProgress, selectedImages.length]) }}
         </span>
       </button>
 
@@ -102,53 +102,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed,onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { i18n } from '#i18n';
+const { t } = i18n;
 // ── 多语言 ────────────────────────────────────────────────────
 const LANG = (() => {
   const l = (navigator.language || 'en').split('-')[0];
   return ['zh', 'en', 'ja', 'ko'].includes(l) ? l : 'en';
 })();
 
-const MESSAGES: Record<string, Record<string, string>> = {
-  zh: {
-    'sidebar.selected': '已选 {count} 张图片',
-    'sidebar.clearAll': '清空全部',
-    'sidebar.emptyTitle': '暂无选中图片',
-    'sidebar.emptyDesc': '悬停图片后点击 ☐ 按钮选中',
-    'sidebar.send': '发送到主站处理',
-    'sidebar.sending': '正在处理 {current}/{total}',
-    'sidebar.allTools': '查看全部工具',
-  },
-  en: {
-    'sidebar.selected': '{count} images selected',
-    'sidebar.clearAll': 'Clear all',
-    'sidebar.emptyTitle': 'No images selected',
-    'sidebar.emptyDesc': 'Hover over an image and click ☐ to select',
-    'sidebar.send': 'Send to BulkPicTools',
-    'sidebar.sending': 'Processing {current}/{total}',
-    'sidebar.allTools': 'All tools',
-  },
-  ja: {
-    'sidebar.selected': '{count}枚選択中',
-    'sidebar.clearAll': 'すべてクリア',
-    'sidebar.emptyTitle': '画像が選択されていません',
-    'sidebar.emptyDesc': '画像にホバーして ☐ をクリックして選択',
-    'sidebar.send': 'BulkPicTools に送信',
-    'sidebar.sending': '{current}/{total} を処理中',
-    'sidebar.allTools': 'すべてのツール',
-  },
-};
-
-function t(key: string, params?: Record<string, string | number>): string {
-  const msgs = MESSAGES[LANG] ?? MESSAGES['en'];
-  let text = msgs[key] ?? key;
-  if (params) {
-    Object.entries(params).forEach(([k, v]) => {
-      text = text.replace(`{${k}}`, String(v));
-    });
-  }
-  return text;
-}
 
 // ── 状态 ──────────────────────────────────────────────────────
 interface SelectedImage {

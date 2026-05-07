@@ -23,5 +23,14 @@
     "sendAll": "Send All",
     "sendSelected": "Send Selected $1",
     "privacyNote": "Images processed locally, no server upload"
+	},
+	"sidebar": {
+		"selected": "$1 images selected",
+		"clearAll": "Clear all",
+		"emptyTitle": "No images selected",
+		"emptyDesc": "Hover over an image and click ☐ to select",
+		"send": "Send to BulkPicTools",
+		"sending": "Processing $1/$2",
+		"allTools": "All Tools"
 	}
 }

@@ -150,7 +150,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { i18n } from '#imports';
+import { i18n } from '#i18n';
 const logger = createLogger('App')
 const { t } = i18n;
 

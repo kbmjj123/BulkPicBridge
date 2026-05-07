@@ -23,5 +23,14 @@
     "sendAll": "全部发送",
     "sendSelected": "发送选中 $1 张",
     "privacyNote": "图片全程本地处理，不经过任何服务器"
+	},
+	"sidebar": {
+		"selected": "已选 $1 张图片",
+		"clearAll": "清空全部",
+		"emptyTitle": "暂无选中图片",
+		"emptyDesc": "悬停图片后点击 ☐ 按钮选中",
+		"send": "发送到主站处理",
+		"sending": "正在处理 $1/$2",
+		"allTools": "查看全部工具"
 	}
 }

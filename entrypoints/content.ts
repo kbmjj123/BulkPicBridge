@@ -122,10 +122,10 @@ export default defineContentScript({
     });
 
     // v2：选中变化 → 广播给 Sidebar（通过 background 转发）
-    window.addEventListener('bulkpic:selectionChange', (e: Event) => {
+    window.addEventListener('bulkpic:selectionChange', async (e: Event) => {
       const detail = (e as CustomEvent).detail;
 			logger.log('[BulkPic] Selection change:', detail.images);
-			browser.runtime.sendMessage({
+			await browser.runtime.sendMessage({
 				type: 'OPEN_SIDEBAR',
 			})
       browser.runtime.sendMessage({
