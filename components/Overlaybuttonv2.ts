@@ -319,22 +319,9 @@ export class OverlayButtonManager {
     const { minWidth, minHeight } = this.siteConfig;
 
     const checkSize = () => {
-      const tagName = target.tagName;
-      if (tagName === 'IMG') {
-        const img = target as HTMLImageElement;
-        if (!img.complete) return false;
-        return img.naturalWidth >= minWidth && img.naturalHeight >= minHeight;
-      }
-      if (tagName === 'VIDEO') {
-        const video = target as HTMLVideoElement;
-        const w = video.videoWidth || video.getBoundingClientRect().width;
-        const h = video.videoHeight || video.getBoundingClientRect().height;
-        return w >= minWidth && h >= minHeight;
-      }
-      if (tagName === 'CANVAS') {
-        const canvas = target as HTMLCanvasElement;
-        return canvas.width >= minWidth && canvas.height >= minHeight;
-      }
+      // 统一使用 CSS 渲染尺寸（getBoundingClientRect）判断
+      // 即使图片原始分辨率很高，如果页面上显示很小（如头像图标）
+      // 悬浮按钮按上去也不方便，视觉上也不协调
       const rect = target.getBoundingClientRect();
       return rect.width >= minWidth && rect.height >= minHeight;
     };
