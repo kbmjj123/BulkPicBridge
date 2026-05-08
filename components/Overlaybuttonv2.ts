@@ -319,10 +319,24 @@ export class OverlayButtonManager {
     const { minWidth, minHeight } = this.siteConfig;
 
     const checkSize = () => {
-      const img = target as HTMLImageElement;
-      const w = img.naturalWidth || target.getBoundingClientRect().width;
-      const h = img.naturalHeight || target.getBoundingClientRect().height;
-      return w >= minWidth && h >= minHeight;
+      const tagName = target.tagName;
+      if (tagName === 'IMG') {
+        const img = target as HTMLImageElement;
+        if (!img.complete) return false;
+        return img.naturalWidth >= minWidth && img.naturalHeight >= minHeight;
+      }
+      if (tagName === 'VIDEO') {
+        const video = target as HTMLVideoElement;
+        const w = video.videoWidth || video.getBoundingClientRect().width;
+        const h = video.videoHeight || video.getBoundingClientRect().height;
+        return w >= minWidth && h >= minHeight;
+      }
+      if (tagName === 'CANVAS') {
+        const canvas = target as HTMLCanvasElement;
+        return canvas.width >= minWidth && canvas.height >= minHeight;
+      }
+      const rect = target.getBoundingClientRect();
+      return rect.width >= minWidth && rect.height >= minHeight;
     };
 
     target.addEventListener('mouseenter', () => {
