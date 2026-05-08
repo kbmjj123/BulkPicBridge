@@ -112,6 +112,12 @@ export default defineContentScript({
         return false;
       }
 
+      // Sidebar 挂载时拉取当前选中数据（解决首次打开竞争条件）
+      if (message.type === 'GET_SELECTION') {
+        sendResponse({ images: getSelectedImages() });
+        return false;
+      }
+
       return false;
     });
 
@@ -125,16 +131,19 @@ export default defineContentScript({
     window.addEventListener('bulkpic:selectionChange', async (e: Event) => {
       const detail = (e as CustomEvent).detail;
 			logger.log('[BulkPic] Selection change:', detail.images);
-			await browser.runtime.sendMessage({
-				type: 'OPEN_SIDEBAR',
-			})
+      // 先尝试打开/确保 Sidebar 已打开，再转发数据
+      try {
+        await browser.runtime.sendMessage({ type: 'OPEN_SIDEBAR' });
+      } catch {
+        // 打开失败不影响数据推送（Sidebar 可能已打开）
+      }
       browser.runtime.sendMessage({
         type: 'FORWARD_TO_SIDEBAR',
         payload: {
           type: 'SELECTION_CHANGE',
           images: detail.images,
         },
-      });
+      }).catch(() => {});
     });
 
     // 页面卸载时清理

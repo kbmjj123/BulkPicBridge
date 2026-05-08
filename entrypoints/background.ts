@@ -161,17 +161,22 @@ export default defineBackground({
           return false;
         }
 
-        // v2：Popup 请求打开 Sidebar
+        // v2：请求打开 Sidebar，等待加载完成后再响应
         case 'OPEN_SIDEBAR': {
           if (chrome.sidePanel) {
             chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
               if (tabs[0]?.id) {
-                chrome.sidePanel.open({ tabId: tabs[0].id }).catch(() => {});
+                chrome.sidePanel.open({ tabId: tabs[0].id })
+                  .then(() => sendResponse({ success: true }))
+                  .catch(() => sendResponse({ success: true }));
+              } else {
+                sendResponse({ success: true });
               }
             });
+          } else {
+            sendResponse({ success: true });
           }
-          sendResponse({ success: true });
-          return false;
+          return true; // 异步响应
         }
 
         case 'CLEAN_SESSIONS': {

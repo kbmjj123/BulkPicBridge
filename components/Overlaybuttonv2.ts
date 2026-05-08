@@ -30,6 +30,9 @@ const STYLES = `
     position: fixed;
     top: 0;
     left: 0;
+    width: 0;
+    height: 0;
+    overflow: visible;
     pointer-events: none;
     z-index: 2147483647;
   }

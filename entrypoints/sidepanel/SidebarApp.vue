@@ -242,9 +242,11 @@ async function sendToMainSite() {
 
 // ── 生命周期 ──────────────────────────────────────────────────
 onMounted(async () => {
-	let hostname = '';
-	try {
+  let hostname = '';
+  let activeTabId: number | undefined;
+  try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    activeTabId = tabs[0]?.id;
     const url = tabs[0]?.url;
     if (url) {
       hostname = new URL(url).hostname;
@@ -253,8 +255,8 @@ onMounted(async () => {
     hostname = '';
   }
   config.value = await getConfig();
-	siteConfig.value = getSiteConfig(config.value, hostname);
-	quickToolList.value = getMenuTools(config.value, siteConfig.value.menuTools);
+  siteConfig.value = getSiteConfig(config.value, hostname);
+  quickToolList.value = getMenuTools(config.value, siteConfig.value.menuTools);
   if (quickToolList.value.length > 0) {
     selectedTool.value = quickToolList.value[0].slug;
   }
@@ -263,11 +265,23 @@ onMounted(async () => {
   // Sidebar 是独立页面，通过 chrome.runtime.onMessage 接收
   chrome.runtime.onMessage.addListener((message) => {
     if (message.type === 'SELECTION_CHANGE') {
-			console.info('[BulkPic Sidebar] 选中图片变化')
+      console.info('[BulkPic Sidebar] 选中图片变化')
       selectedImages.value = message.images ?? [];
-			console.info('[BulkPic Sidebar] 选中的图片:', selectedImages.value)
+      console.info('[BulkPic Sidebar] 选中的图片:', selectedImages.value)
     }
   });
+
+  // 挂载时主动拉取当前选中数据，防止第一次打开时消息丢失
+  if (activeTabId) {
+    try {
+      const resp = await chrome.tabs.sendMessage(activeTabId, { type: 'GET_SELECTION' });
+      if (resp?.images && resp.images.length > 0) {
+        selectedImages.value = resp.images;
+      }
+    } catch {
+      // Content script 未就绪时静默跳过
+    }
+  }
 });
 </script>
 
@@ -365,14 +379,14 @@ body {
   overflow-y: auto;
   padding: 10px 12px;
 }
- 
+
 .image-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-	padding: 6px;
+  padding: 6px;
 }
- 
+
 .grid-item {
   position: relative;
   aspect-ratio: 1;
@@ -380,7 +394,7 @@ body {
   overflow: hidden;
   background: rgba(255,255,255,0.06);
 }
- 
+
 .grid-img {
   width: 100%;
   height: 100%;
@@ -391,7 +405,7 @@ body {
 .grid-item:hover .grid-img {
   transform: scale(1.04);
 }
- 
+
 .btn-remove {
   position: absolute;
   top: 4px;
@@ -417,7 +431,7 @@ body {
   color: white;
 }
 .btn-remove svg { width: 10px; height: 10px; }
- 
+
 
 /* ── 操作区 ── */
 .action-area {
