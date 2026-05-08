@@ -289,9 +289,9 @@ onMounted(async () => {
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #0f172a;
-  color: #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  background: #0f0e0c;
+  color: #f5f5f4;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
@@ -324,19 +324,19 @@ body {
 .brand-name {
   font-size: 13px;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #f5f5f4;
   line-height: 1.3;
 }
 
 .brand-count {
   font-size: 11px;
-  color: #6366f1;
+  color: #818cf8;
   margin-top: 1px;
 }
 
 .btn-clear {
   font-size: 11px;
-  color: #64748b;
+  color: #78716c;
   background: none;
   border: none;
   cursor: pointer;
@@ -370,8 +370,8 @@ body {
 }
 .empty-icon svg { width: 22px; height: 22px; }
 
-.empty-title { font-size: 13px; font-weight: 500; color: #475569; }
-.empty-desc  { font-size: 12px; color: #334155; text-align: center; line-height: 1.5; }
+.empty-title { font-size: 13px; font-weight: 500; color: #a8a29e; }
+.empty-desc  { font-size: 12px; color: #78716c; text-align: center; line-height: 1.5; }
 
 /* ── 图片列表：九宫格 ── */
 .image-grid-wrap {
@@ -392,7 +392,7 @@ body {
   aspect-ratio: 1;
   border-radius: 6px;
   overflow: hidden;
-  background: rgba(255,255,255,0.06);
+  background: #1c1917;
 }
 
 .grid-img {
@@ -454,27 +454,27 @@ body {
   font-size: 11px;
   font-weight: 500;
   border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
-  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  color: #a8a29e;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s;
 }
-.tool-btn:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+.tool-btn:hover { background: rgba(255,255,255,0.06); color: #f5f5f4; }
 .tool-btn.active {
-  background: rgba(99,102,241,0.15);
-  border-color: rgba(99,102,241,0.5);
-  color: #818cf8;
+  background: rgba(79,70,229,0.12);
+  border-color: rgba(79,70,229,0.30);
+  color: #a5b4fc;
 }
 
 .btn-send {
   width: 100%;
   padding: 11px;
-  background: #6366f1;
+  background: #4f46e5;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -486,7 +486,7 @@ body {
   gap: 8px;
 }
 .btn-send:hover:not(:disabled) { background: #4f46e5; }
-.btn-send:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+.btn-send:disabled { background: #292524; color: #78716c; cursor: not-allowed; }
 
 .sending-state {
   display: flex;
@@ -509,12 +509,12 @@ body {
   display: block;
   text-align: center;
   font-size: 12px;
-  color: #475569;
+  color: #78716c;
   text-decoration: none;
   padding: 4px;
   transition: color 0.15s;
 }
-.btn-all-tools:hover { color: #6366f1; }
+.btn-all-tools:hover { color: #818cf8; }
 
 /* ── 列表动画 ── */
 .list-enter-active, .list-leave-active { transition: all 0.2s ease; }

@@ -236,18 +236,18 @@ function showExifPanel(
       :host { all: initial; }
       .panel {
         position: fixed; bottom: 24px; right: 24px; width: 320px;
-        background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 12px; padding: 16px; z-index: 2147483647;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        font-size: 13px; color: #e2e8f0;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideIn 0.2s ease;
+        background: #1c1917; border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 8px; padding: 14px; z-index: 2147483647;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+        font-size: 12px; color: #f5f5f4;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.50); animation: slideIn 0.2s ease;
       }
-      @keyframes slideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
       .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
       .title { font-weight:600; font-size:14px; display:flex; align-items:center; gap:6px; }
       .badge {
-        display:inline-flex; align-items:center; padding:2px 8px; border-radius:99px;
-        font-size:11px; font-weight:600;
+        display:inline-flex; align-items:center; padding:2px 8px; border-radius:4px;
+        font-size:10px; font-weight:600;
         background:${riskColor}22; color:${riskColor}; border:1px solid ${riskColor}44;
       }
       .close-btn {
@@ -256,26 +256,26 @@ function showExifPanel(
       }
       .close-btn:hover { color:#e2e8f0; }
       .summary {
-        font-size:13px; line-height:1.5; color:#cbd5e1; margin-bottom:10px;
-        padding:8px 10px; background:rgba(255,255,255,0.05);
-        border-radius:6px; border-left:3px solid ${riskColor};
+        font-size:12px; line-height:1.5; color:#a8a29e; margin-bottom:10px;
+        padding:8px 10px; background:rgba(255,255,255,0.03);
+        border-radius:0 6px 6px 0; border-left:3px solid ${riskColor};
       }
       .risk-list { list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:4px; }
-      .risk-item { font-size:12px; color:#94a3b8; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+      .risk-item { font-size:12px; color:#94a3b8; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
       .gps-coords {
         font-size:11px; color:#ef4444; margin-bottom:10px;
-        font-family:'Courier New',monospace; background:rgba(239,68,68,0.08);
+        font-family:ui-monospace, 'SF Mono', 'Courier New', monospace; background:rgba(239,68,68,0.06);
         padding:6px 8px; border-radius:4px;
       }
       .action-btn {
-        width:100%; padding:10px; background:#0ea5e9; color:white; border:none;
-        border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+        width:100%; padding:10px; background:#4f46e5; color:white; border:none;
+        border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;
         transition:background 0.15s; font-family:inherit;
       }
-      .action-btn:hover:not(:disabled) { background:#0284c7; }
-      .action-btn:disabled { background:#334155; color:#64748b; cursor:default; }
-      .brand { margin-top:10px; text-align:center; font-size:11px; color:#475569; }
-      .brand a { color:#0ea5e9; text-decoration:none; }
+      .action-btn:hover:not(:disabled) { background:#6366f1; }
+      .action-btn:disabled { background:#292524; color:#78716c; cursor:default; }
+      .brand { margin-top:10px; text-align:center; font-size:11px; color:#78716c; }
+      .brand a { color:#818cf8; text-decoration:none; }
     </style>
     <div class="panel">
       <div class="header">

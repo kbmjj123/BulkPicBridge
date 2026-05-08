@@ -42,11 +42,11 @@ const STYLES = `
     position: absolute;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     pointer-events: auto;
     opacity: 0;
     transform: scale(0.85) translateY(-4px);
-    transition: opacity 0.18s ease, transform 0.18s ease;
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
 
   .btn-group.visible {
@@ -56,9 +56,9 @@ const STYLES = `
 
   /* ── 通用按钮 ── */
   .btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 7px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     border: none;
     cursor: pointer;
     display: flex;
@@ -70,34 +70,37 @@ const STYLES = `
     position: relative;
   }
 
-  .btn:hover { transform: scale(1.1); }
+  .btn:hover { transform: scale(1.08); }
   .btn:active { transform: scale(0.95); }
 
   /* 快捷工具按钮 */
   .btn-quick {
-    background: rgba(99, 102, 241, 0.92);
-    box-shadow: 0 2px 8px rgba(99,102,241,0.45);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    box-shadow: 0 2px 8px rgba(79,70,229,0.30);
   }
-  .btn-quick:hover { background: rgba(79, 82, 221, 1); }
+  .btn-quick:hover { box-shadow: 0 3px 12px rgba(79,70,229,0.40); }
 
   /* Checkbox 按钮 */
   .btn-check {
-    background: rgba(30, 30, 40, 0.75);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    background: rgba(28, 25, 23, 0.85);
+    border: 1px solid rgba(255,255,255,0.08);
   }
-  .btn-check:hover { background: rgba(50, 50, 65, 0.92); }
+  .btn-check:hover { background: rgba(28, 25, 23, 0.95); }
   .btn-check.checked {
-    background: rgba(34, 197, 94, 0.88);
-    box-shadow: 0 2px 8px rgba(34,197,94,0.4);
+    background: rgba(79, 70, 229, 0.12);
+    border-color: rgba(79, 70, 229, 0.30);
   }
 
   /* 菜单按钮 */
   .btn-menu {
-    background: rgba(30, 30, 40, 0.75);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    background: rgba(28, 25, 23, 0.85);
+    border: 1px solid rgba(255,255,255,0.08);
   }
-  .btn-menu:hover { background: rgba(50, 50, 65, 0.92); }
-  .btn-menu.active { background: rgba(99, 102, 241, 0.92); }
+  .btn-menu:hover { background: rgba(28, 25, 23, 0.95); }
+  .btn-menu.active {
+    background: rgba(79, 70, 229, 0.12);
+    border-color: rgba(79, 70, 229, 0.30);
+  }
 
   .btn svg {
     width: 14px;
@@ -129,7 +132,7 @@ const STYLES = `
   /* ── Tooltip ── */
   .tooltip {
     position: absolute;
-    bottom: calc(100% + 6px);
+    bottom: calc(100% + 4px);
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0,0,0,0.85);
@@ -151,11 +154,11 @@ const STYLES = `
     top: calc(100% + 6px);
     right: 0;
     width: 168px;
-    background: #1a1a2e;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px;
+    background: #1c1917;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
     padding: 4px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.40);
     pointer-events: auto;
     opacity: 0;
     transform: scale(0.92) translateY(-4px);
@@ -180,11 +183,11 @@ const STYLES = `
     align-items: center;
     gap: 8px;
     padding: 7px 10px;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 12px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: #e2e8f0;
+    color: #f5f5f4;
     transition: background 0.12s;
     border: none;
     background: transparent;
@@ -192,8 +195,8 @@ const STYLES = `
     text-align: left;
   }
 
-  .menu-item:hover { background: rgba(255,255,255,0.08); }
-  .menu-item:active { background: rgba(255,255,255,0.12); }
+  .menu-item:hover { background: rgba(255,255,255,0.06); }
+  .menu-item:active { background: rgba(255,255,255,0.08); }
 
   .menu-item svg {
     width: 14px;
@@ -478,8 +481,8 @@ function positionButtons(target: HTMLElement) {
   if (!btnGroup) return;
 
   const rect = target.getBoundingClientRect();
-  // 三个按钮 30px × 3 + gap 4px × 2 = 98px，右对齐留 8px
-  const x = rect.right - 98 - 8;
+  // 三个按钮 28px × 3 + gap 3px × 2 = 90px，右对齐留 8px
+  const x = rect.right - 90 - 8;
   const y = rect.top + 8;
 
   btnGroup.style.left = `${x}px`;
