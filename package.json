@@ -2,7 +2,7 @@
   "name": "bulkpic-bridge",
   "description": "BulkPic Bridge — 从任意网页一键将图片送入 bulkpictools.com 的 29 个处理工具",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "wxt -p 3001",
