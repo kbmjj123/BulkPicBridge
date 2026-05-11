@@ -34,6 +34,15 @@ export default defineConfig({
     content_security_policy: {
       extension_pages: "script-src 'self'; object-src 'self'",
     },
+		browser_specific_settings: {
+      gecko: {
+        id: 'bulkpic-bridge@bulkpictools.com',
+        data_collection_permissions: {
+          required: [],
+          optional: [],
+        }
+      }
+    }
   },
   vite: () => ({
     css: {
