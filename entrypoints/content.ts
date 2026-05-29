@@ -27,8 +27,14 @@ export default defineContentScript({
 
     const hostname = location.hostname;
 
-    // ── v2：拉取远程配置，检查黑名单 ────────────────────────
+    // ── 拉取远程配置 ──────────────────────────────────────────
     const config = await getConfig();
+
+    // 主站 /import 页面：数据中转桥接（必须在黑名单检查之前，否则会被拦截）
+    if (MAIN_SITE.indexOf(hostname) > -1 && location.pathname.startsWith(IMPORT_PATH)) {
+      handleImportBridge();
+      return;
+    }
 
     if (isBlacklisted(hostname, config.blacklist)) {
       logger.log('[BulkPic Bridge] 黑名单域名，跳过注入:', hostname);
@@ -43,7 +49,7 @@ export default defineContentScript({
 			manager = new OverlayButtonManager(config, hostname);
 			manager.init();
 		}
-    
+
 
     // 埋点：平台适配命中
     trackAdapterMatch(hostname);
@@ -150,11 +156,6 @@ export default defineContentScript({
     window.addEventListener('beforeunload', () => {
       manager && manager.destroy();
     });
-    // 主站 /import 页面：数据中转桥接
-    if (MAIN_SITE.indexOf(hostname) > -1 && IMPORT_PATH.indexOf(location.pathname) > -1) {
-			console.info('开始检讨')
-      handleImportBridge();
-    }
 
     // 开发模式下挂载 DevTools 调试工具
     if (import.meta.env.DEV) {
