@@ -12,6 +12,9 @@ const LANG = (() => {
   return ['zh', 'en', 'ja', 'ko'].includes(l) ? l : 'en';
 })();
 
+// ── i18n 快捷方式 ──────────────────────────────────────────────
+const t = (key: string): string => (browser.i18n as any).getMessage(key) || key;
+
 // ── 全局状态 ──────────────────────────────────────────────────
 let globalHost: HTMLElement | null = null;
 let globalShadow: ShadowRoot | null = null;
@@ -43,13 +46,14 @@ const STYLES = `
     display: flex;
     align-items: center;
     gap: 3px;
-    pointer-events: auto;
+    pointer-events: none;
     opacity: 0;
     transform: scale(0.85) translateY(-4px);
     transition: opacity 0.15s ease, transform 0.15s ease;
   }
 
   .btn-group.visible {
+    pointer-events: auto;
     opacity: 1;
     transform: scale(1) translateY(0);
   }
@@ -377,13 +381,13 @@ function ensureGlobalHost(
   const checkBtn = document.createElement('button');
   checkBtn.className = 'btn btn-check';
   checkBtn.innerHTML = ICONS.checkbox +
-    `<span class="tooltip">${LANG === 'zh' ? '选中图片' : 'Select image'}</span>`;
+    `<span class="tooltip">${t('overlay_select')}</span>`;
 
   // ── 按钮三：菜单 ──
   const menuBtn = document.createElement('button');
   menuBtn.className = 'btn btn-menu';
   menuBtn.innerHTML = ICONS.dots +
-    `<span class="tooltip">${LANG === 'zh' ? '更多工具' : 'More tools'}</span>`;
+    `<span class="tooltip">${t('overlay_more_tools')}</span>`;
 
   // ── 下拉菜单 ──
   const dropdown = buildDropdown(menuTools);
@@ -463,7 +467,7 @@ function buildDropdown(menuTools: ToolConfig[]): HTMLElement {
 
   const allItem = document.createElement('button');
   allItem.className = 'menu-item menu-item-all';
-  allItem.innerHTML = `${ICONS.externalLink}<span>${LANG === 'zh' ? '查看全部工具 →' : 'All tools →'}</span>`;
+  allItem.innerHTML = `${ICONS.externalLink}<span>${t('overlay_all_tools')}</span>`;
   allItem.addEventListener('click', (e) => {
     e.stopPropagation();
     window.open('https://bulkpictools.com', '_blank');
@@ -514,8 +518,11 @@ function showButtons(target: HTMLElement) {
   if (checkBtn) {
     const isChecked = selectedImages.has(target);
     checkBtn.className = `btn btn-check${isChecked ? ' checked' : ''}`;
+    const overlayTip = isChecked
+      ? t('overlay_deselect')
+      : t('overlay_select');
     checkBtn.innerHTML = (isChecked ? ICONS.checkboxChecked : ICONS.checkbox) +
-      `<span class="tooltip">${LANG === 'zh' ? (isChecked ? '取消选中' : '选中图片') : (isChecked ? 'Deselect' : 'Select')}</span>`;
+      `<span class="tooltip">${overlayTip}</span>`;
   }
 }
 
@@ -591,7 +598,7 @@ function handleCheckbox(target: HTMLElement, checkBtn: HTMLButtonElement) {
     selectedImages.delete(target);
     checkBtn.className = 'btn btn-check';
     checkBtn.innerHTML = ICONS.checkbox +
-      `<span class="tooltip">${LANG === 'zh' ? '选中图片' : 'Select'}</span>`;
+      `<span class="tooltip">${t('overlay_select')}</span>`;
   } else {
     // 生成预览 URL（仅用于 Sidebar 显示）
     const img = target as HTMLImageElement;
@@ -599,7 +606,7 @@ function handleCheckbox(target: HTMLElement, checkBtn: HTMLButtonElement) {
     selectedImages.set(target, { url: src, thumbnail: src });
     checkBtn.className = 'btn btn-check checked';
     checkBtn.innerHTML = ICONS.checkboxChecked +
-      `<span class="tooltip">${LANG === 'zh' ? '取消选中' : 'Deselect'}</span>`;
+      `<span class="tooltip">${t('overlay_deselect')}</span>`;
   }
 
   // 通知 Sidebar 更新选中列表
@@ -628,7 +635,7 @@ async function captureAndSave(target: HTMLElement): Promise<string | null> {
     blob = await resp.blob();
   } else if (src) {
     // 普通 URL：直接 fetch
-    const resp = await fetch(src, { credentials: 'include' });
+    const resp = await fetch(src);
     blob = await resp.blob();
   }
 

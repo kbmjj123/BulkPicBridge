@@ -57,36 +57,20 @@
         </div>
       </button>
 
-      <!-- 操作 2：一键裁切/压缩 -->
-      <button class="flex items-center gap-3 p-3 bg-[#1c1917] border border-[rgba(255,255,255,0.06)] rounded-[8px] hover:bg-[#292524] hover:border-[rgba(255,255,255,0.10)] hover:-translate-y-0.5 transition-all w-full text-left"
-        @click="openTool('crop')">
+      <!-- 快捷工具（动态） -->
+      <button
+        v-for="tool in quickToolList"
+        :key="tool.slug"
+        class="flex items-center gap-3 p-3 bg-[#1c1917] border border-[rgba(255,255,255,0.06)] rounded-[8px] hover:bg-[#292524] hover:border-[rgba(255,255,255,0.10)] hover:-translate-y-0.5 transition-all w-full text-left"
+        @click="openTool(tool.slug)">
         <div class="w-8 h-8 bg-[rgba(79,70,229,0.12)] rounded-[6px] flex items-center justify-center text-[#6366f1] flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2"/>
           </svg>
         </div>
         <div class="flex-1">
-          <div class="text-sm font-semibold leading-tight">{{ t('popup.cropCompress') }}</div>
-          <div class="text-xs text-[#a8a29e] mt-0.5 leading-tight">{{ t('popup.cropDesc') }}</div>
-        </div>
-        <div class="text-[#78716c] flex-shrink-0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </div>
-      </button>
-
-      <!-- 操作 3：批量加水印 -->
-      <button class="flex items-center gap-3 p-3 bg-[#1c1917] border border-[rgba(255,255,255,0.06)] rounded-[8px] hover:bg-[#292524] hover:border-[rgba(255,255,255,0.10)] hover:-translate-y-0.5 transition-all w-full text-left"
-        @click="openTool('watermark')">
-        <div class="w-8 h-8 bg-[rgba(79,70,229,0.12)] rounded-[6px] flex items-center justify-center text-[#6366f1] flex-shrink-0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-        </div>
-        <div class="flex-1">
-          <div class="text-sm font-semibold leading-tight">{{ t('popup.watermark') }}</div>
-          <div class="text-xs text-[#a8a29e] mt-0.5 leading-tight">{{ t('popup.watermarkDesc') }}</div>
+          <div class="text-sm font-semibold leading-tight">{{ getToolLabel(tool, LANG) }}</div>
+          <div class="text-xs text-[#a8a29e] mt-0.5 leading-tight">Open tool</div>
         </div>
         <div class="text-[#78716c] flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
@@ -150,13 +134,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { i18n } from '#i18n';
+import { getConfig, getSiteConfig, getMenuTools, getToolLabel } from '@/utils/remoteConfigService';
 const logger = createLogger('App')
 const { t } = i18n;
+
+// ── 多语言 ──
+const LANG = (() => {
+  const l = (navigator.language || 'en').split('-')[0];
+  return ['zh', 'en', 'ja', 'ko'].includes(l) ? l : 'en';
+})();
 
 // ── 状态 ──────────────────────────────────────────────────
 const isActive = ref(false);
 const currentPlatform = ref('');
 const isExtracting = ref(false);
+
+const config = ref<RemoteConfig | null>(null);
+const siteConfig = ref<SiteConfig & { minWidth: number; minHeight: number } | null>(null);
+const quickToolList = ref<ToolConfig[]>([]);
 
 interface ExtractedImage {
   url: string;
@@ -171,7 +166,6 @@ const selectedImages = ref(new Set<number>());
 // ── 初始化 ────────────────────────────────────────────────
 onMounted(async () => {
   // 获取当前 Tab 信息
-	debugger
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab?.url) {
     try {
@@ -181,6 +175,13 @@ onMounted(async () => {
         isActive.value = true;
         currentPlatform.value = adapter.name;
       }
+
+      // 加载远程配置 & 站点快捷工具
+      const cfg = await getConfig();
+      config.value = cfg;
+      const sc = getSiteConfig(cfg, hostname);
+      siteConfig.value = sc;
+      quickToolList.value = getMenuTools(cfg, sc.menuTools);
     } catch {
       // 忽略解析错误
     }
@@ -221,11 +222,7 @@ async function extractAllImages() {
  * 打开主站指定工具
  */
 function openTool(tool: string) {
-  const presetMap: Record<string, string> = {
-    crop: 'youtube_thumbnail',
-    watermark: 'watermark',
-  };
-  const url = buildImportUrl({ action: 'auto_run', preset: presetMap[tool] });
+  const url = buildImportUrl({ action: 'auto_run', preset: tool });
   browser.tabs.create({ url });
 }
 

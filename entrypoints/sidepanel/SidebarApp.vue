@@ -204,7 +204,7 @@ async function sendToMainSite() {
           }
         }
       } else {
-        const response = await fetch(img.url, { credentials: 'include' });
+        const response = await fetch(img.url);
         blob = await response.blob();
       }
 
