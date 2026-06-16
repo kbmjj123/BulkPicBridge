@@ -227,6 +227,7 @@ async function sendToMainSite() {
       sid: resp.sid,
       action: 'auto_run',
       preset: selectedTool.value,
+      lang: LANG,
     });
 
     await chrome.tabs.create({ url });
