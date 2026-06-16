@@ -204,31 +204,8 @@ async function sendToMainSite() {
           }
         }
       } else {
-        try {
-          const response = await fetch(img.url);
-          blob = await response.blob();
-        } catch {
-          // CORS 失败，走 background proxy
-          const proxy = await chrome.runtime.sendMessage({
-            type: 'FETCH_IMAGE_PROXY',
-            url: img.url,
-          });
-          if (proxy?.success && proxy.dataUrl) {
-            const dataResp = await fetch(proxy.dataUrl);
-            blob = await dataResp.blob();
-          } else if (proxy?.success && proxy.sessionId) {
-            // Background 已存 IDB，获取后还原
-            const session = await chrome.runtime.sendMessage({
-              type: 'GET_BLOB_SESSION',
-              sid: proxy.sessionId,
-            });
-            if (session?.success && session.base64Array?.[0]) {
-              blob = new Blob([base64ToArrayBuffer(session.base64Array[0])], {
-                type: session.mimeType || 'image/jpeg',
-              });
-            }
-          }
-        }
+        const response = await fetch(img.url);
+        blob = await response.blob();
       }
 
       if (blob && blob.size > 100) blobs.push(blob);
