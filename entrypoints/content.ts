@@ -31,7 +31,7 @@ export default defineContentScript({
     const config = await getConfig();
 
     // 主站 /import 页面：数据中转桥接（必须在黑名单检查之前，否则会被拦截）
-    if (MAIN_SITE.indexOf(hostname) > -1 && location.pathname.startsWith(IMPORT_PATH)) {
+    if (MAIN_SITE.indexOf(hostname) > -1 && /\/import$/.test(location.pathname)) {
       handleImportBridge();
       return;
     }
