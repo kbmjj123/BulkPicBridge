@@ -232,6 +232,7 @@ async function sendToMainSite() {
 
     await chrome.tabs.create({ url });
     clearAll();
+    window.close();
 
   } catch (err) {
     console.error('[BulkPic Sidebar] 发送失败:', err);
