@@ -634,9 +634,23 @@ async function captureAndSave(target: HTMLElement): Promise<string | null> {
     const resp = await fetch(src);
     blob = await resp.blob();
   } else if (src) {
-    // 普通 URL：直接 fetch
-    const resp = await fetch(src);
-    blob = await resp.blob();
+    // 直接 fetch，若 CORS 失败则走 background proxy（privileged context 不受限）
+    try {
+      const resp = await fetch(src);
+      blob = await resp.blob();
+    } catch {
+      const proxy = await browser.runtime.sendMessage({
+        type: 'FETCH_IMAGE_PROXY',
+        url: src,
+      });
+      if (proxy?.success && proxy.dataUrl) {
+        const dataResp = await fetch(proxy.dataUrl);
+        blob = await dataResp.blob();
+      } else if (proxy?.success && proxy.sessionId) {
+        // Background 已存 IDB，直接复用 sessionId
+        return proxy.sessionId;
+      }
+    }
   }
 
   if (!blob || blob.size < 100) return null;
