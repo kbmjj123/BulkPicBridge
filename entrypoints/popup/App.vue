@@ -222,7 +222,7 @@ async function extractAllImages() {
  * 打开主站指定工具
  */
 function openTool(tool: string) {
-  const url = buildImportUrl({ action: 'auto_run', preset: tool });
+  const url = buildImportUrl({ action: 'auto_run', preset: tool, lang: LANG });
   browser.tabs.create({ url });
 }
 

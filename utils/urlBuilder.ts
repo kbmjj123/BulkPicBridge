@@ -26,13 +26,23 @@ export interface ImportParams {
   preset?: PresetType;
   /** 批量 URL 列表（方案 A 批量版） */
   sources?: string[];
+  /** 语言前缀，如 'zh'、'ja'，默认自动检测 */
+  lang?: string;
 }
 
 /**
  * 构建单图跳转 URL
  */
 export function buildImportUrl(params: ImportParams): string {
-  const u = new URL(MAIN_SITE + IMPORT_PATH);
+  // 语言检测：自动从浏览器环境推断
+  const lang = params.lang ?? (() => {
+    try {
+      const l = (navigator.language || 'en').split('-')[0];
+      return ['zh', 'ja', 'ko'].includes(l) ? l : 'en';
+    } catch { return 'en'; }
+  })();
+  const prefix = lang !== 'en' ? `/${lang}` : '';
+  const u = new URL(MAIN_SITE + prefix + IMPORT_PATH);
 
   if (params.url) {
     u.searchParams.set('url', params.url);
