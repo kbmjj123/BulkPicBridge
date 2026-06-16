@@ -563,7 +563,7 @@ async function handleQuickSend(target: HTMLElement, btn: HTMLButtonElement, tool
     track('overlay_button_click', { action: 'quick', tool: toolSlug });
 
     setTimeout(() => {
-      const url = buildImportUrl({ sid, action: 'auto_run', preset: toolSlug, lang: LANG });
+      const url = buildImportUrl({ sid, action: 'auto_run', preset: toolSlug });
       window.open(url, '_blank');
       setTimeout(() => { btn.className = 'btn btn-quick'; }, 1000);
     }, 300);
@@ -581,7 +581,7 @@ async function handleMenuSend(target: HTMLElement, toolSlug: string) {
     const sid = await captureAndSave(target);
     if (!sid) return;
     track('overlay_button_click', { action: 'menu', tool: toolSlug });
-    const url = buildImportUrl({ sid, action: 'auto_run', preset: toolSlug, lang: LANG });
+    const url = buildImportUrl({ sid, action: 'auto_run', preset: toolSlug });
     window.open(url, '_blank');
   } catch (err) {
     console.error('[BulkPic] menuSend error:', err);
