@@ -129,12 +129,24 @@
 			</a>
     </div>
   </div>
+
+    <!-- 测试：刷新远程配置 -->
+    <div class="flex items-center gap-1.5 px-4 py-1.5 bg-[#1c1917] border-t border-[rgba(255,255,255,0.06)]" v-if="showDevTools">
+      <button
+        class="text-[10px] text-[#78716c] hover:text-[#818cf8] transition-colors bg-none border-none cursor-pointer px-0 py-0"
+        :disabled="refreshLoading"
+        @click="refreshRemoteConfig"
+      >
+        {{ refreshLoading ? '刷新中...' : '🔄 刷新配置' }}
+      </button>
+      <span v-if="refreshDone" class="text-[10px] text-green-500">✔</span>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { i18n } from '#i18n';
-import { getConfig, getSiteConfig, getMenuTools, getToolLabel } from '@/utils/remoteConfigService';
+import { getConfig, getSiteConfig, getMenuTools, getToolLabel, refreshConfig } from '@/utils/remoteConfigService';
 const logger = createLogger('App')
 const { t } = i18n;
 
@@ -162,6 +174,10 @@ interface ExtractedImage {
 
 const extractedImages = ref<ExtractedImage[]>([]);
 const selectedImages = ref(new Set<number>());
+
+const showDevTools = ref(true);  // 测试阶段保持可见
+const refreshLoading = ref(false);
+const refreshDone = ref(false);
 
 // ── 初始化 ────────────────────────────────────────────────
 onMounted(async () => {
@@ -266,6 +282,33 @@ async function sendImages(urls: string[]) {
     urls,
   });
   window.close();
+}
+
+/**
+ * 测试用：手动刷新远程配置
+ */
+async function refreshRemoteConfig() {
+  refreshLoading.value = true;
+  refreshDone.value = false;
+  try {
+    await refreshConfig();
+    // 重新加载配置到响应式状态
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    if (tab?.url) {
+      const hostname = new URL(tab.url).hostname;
+      const cfg = await getConfig();
+      config.value = cfg;
+      const sc = getSiteConfig(cfg, hostname);
+      siteConfig.value = sc;
+      quickToolList.value = getMenuTools(cfg, sc.menuTools);
+    }
+    refreshDone.value = true;
+    setTimeout(() => { refreshDone.value = false; }, 2000);
+  } catch (err) {
+    logger.error('[Popup] 刷新配置失败:', err);
+  } finally {
+    refreshLoading.value = false;
+  }
 }
 </script>
 
