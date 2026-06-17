@@ -10,6 +10,8 @@
 
 import { DEFAULT_CONFIG } from './config';
 
+
+// const CONFIG_URL = 'http://localhost:3001/menu-config.local.json';
 const CONFIG_URL = 'https://cdn.bulkpictools.com/bridge/menu-config.json';
 const CACHE_KEY = 'remote_config';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 小时
