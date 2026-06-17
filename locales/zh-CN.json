@@ -25,6 +25,7 @@
     "watermarkDesc": "品牌保护，一次处理全部",
     "foundImages": "找到 $1 张图片",
     "sendAll": "全部发送",
+    "sending": "发送中...",
     "sendSelected": "发送选中 $1 张",
     "privacyNote": "图片全程本地处理，不经过任何服务器"
 	},

@@ -25,6 +25,7 @@
     "watermarkDesc": "Brand protection, process all at once",
     "foundImages": "Found $1 images",
     "sendAll": "Send All",
+    "sending": "Sending...",
     "sendSelected": "Send Selected $1",
     "privacyNote": "Images processed locally, no server upload"
 	},

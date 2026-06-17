@@ -64,7 +64,7 @@
         <div class="flex items-center justify-between text-xs text-[#a8a29e] pt-1 mb-2">
           <span>{{ t('popup.foundImages', [extractedImages.length]) }}</span>
           <button class="text-xs text-[#818cf8] bg-none border-none cursor-pointer p-0 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="isSending" @click="sendAllImages">
-            {{ isSending ? '发送中...' : (t('popup.sendAll') + ' ↗') }}
+            {{ isSending ? t('popup.sending') : (t('popup.sendAll') + ' ↗') }}
           </button>
         </div>
         <div class="grid grid-cols-5 gap-1">
@@ -92,7 +92,7 @@
           <span v-if="!isSending">{{ t('popup.sendSelected', [selectedImages.size]) }} ↗</span>
           <span v-else class="flex items-center justify-center gap-2">
             <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span>
-            发送中...
+            {{ t('popup.sending') }}
           </span>
         </button>
       </div>
