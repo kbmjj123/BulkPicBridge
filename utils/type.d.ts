@@ -2,6 +2,18 @@
  * 远程配置类型定义
  * 对应 Cloudflare R2 上的 menu-config.json
  */
+
+export type ButtonPosition =
+  /** 右上角（默认） */
+  | 'top-right'
+  /** 左上角 */
+  | 'top-left'
+  /** 右下角 */
+  | 'bottom-right'
+  /** 左下角 */
+  | 'bottom-left'
+  /** 顶部居中 */
+  | 'top-center';
 export interface ToolLabel {
 	zh: string;
 	en: string;
@@ -32,6 +44,8 @@ export interface SiteConfig {
 	imageSelector?: string;
 	/** 需要跳过的容器选择器 */
 	skipContainerSelector?: string;
+	/** 按钮组相对于图片的位置，默认 'top-left' */
+	buttonPosition?: ButtonPosition;
 }
 
 export interface ImageFilter {
