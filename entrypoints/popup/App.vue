@@ -63,11 +63,7 @@
         :key="tool.slug"
         class="flex items-center gap-3 p-3 bg-[#1c1917] border border-[rgba(255,255,255,0.06)] rounded-[8px] hover:bg-[#292524] hover:border-[rgba(255,255,255,0.10)] hover:-translate-y-0.5 transition-all w-full text-left"
         @click="openTool(tool.slug)">
-        <div class="w-8 h-8 bg-[rgba(79,70,229,0.12)] rounded-[6px] flex items-center justify-center text-[#6366f1] flex-shrink-0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
-            <path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2"/>
-          </svg>
-        </div>
+        <div class="w-8 h-8 bg-[rgba(79,70,229,0.12)] rounded-[6px] flex items-center justify-center text-[#6366f1] flex-shrink-0" v-html="getToolIcon(tool.slug)"></div>
         <div class="flex-1">
           <div class="text-sm font-semibold leading-tight">{{ getToolLabel(tool, LANG) }}</div>
           <div class="text-xs text-[#a8a29e] mt-0.5 leading-tight">Open tool</div>
@@ -232,6 +228,41 @@ async function extractAllImages() {
   } finally {
     isExtracting.value = false;
   }
+}
+
+/**
+ * 工具图标映射（slug → SVG path）
+ */
+const TOOL_ICON_MAP: Record<string, string> = {
+  'image-compressor':              'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2',
+  'image-resizer':                 'M21 21H3M21 3v18M3 3h18M8 8l8 8M16 8H8v8',
+  'image-cropper':                 'M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14',
+  'image-watermark':               'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+  'remove-background':             'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM21 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  'to-webp':                       'M4 16L8.586 11.414a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z',
+  'to-png':                        'M4 16L8.586 11.414a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z',
+  'to-jpg':                        'M4 16L8.586 11.414a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z',
+  'to-gif':                        'M4 16L8.586 11.414a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z',
+  'image-converter':               'M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M4 12l8-9 8 9',
+  'image-editor':                  'M17 3a2.828 2.828 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z',
+  'flip-image':                    'M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4',
+  'add-text-to-image':             'M4 6h16M4 12h16M4 18h7',
+  'round-corner':                  'M21 12a9 9 0 1 1-6.219-8.56',
+  'blur-image':                    'M12 2.69l5.66-5.66a8 8 0 1 1-11.31 0z',
+  'ig-resize':                     'M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5zM16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z',
+  'fb-resize':                     'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z',
+  'twitter-resize':                'M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z',
+  'yt-thumbnail':                  'M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58zM9.75 8.5v7l6.75-3.5L9.75 8.5z',
+  'youtube-thumbnail-resizer':     'M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58zM9.75 8.5v7l6.75-3.5L9.75 8.5z',
+  'bg-remover':                    'M15 12v-1m0 0V9m0 2h1m-1 0h-1m-5.1 5.35A7 7 0 1 1 17 15.45M5 22h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z',
+  'passport-photo':                'M16 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5M8 7l-5 5 5 5M3 12h13',
+  'instagram-resizer':             'M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5zM16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z',
+  'facebook-image-resizer':        'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z',
+};
+
+function getToolIcon(slug: string): string {
+  const path = TOOL_ICON_MAP[slug] || TOOL_ICON_MAP['image-compressor'];
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="${path}"/></svg>`;
 }
 
 /**
