@@ -1,0 +1,292 @@
+{
+  "version": "2.0.0",
+  "updatedAt": "2026-06-17",
+
+  "blacklist": [
+    "mail.google.com",
+    "docs.google.com",
+    "sheets.google.com",
+    "slides.google.com",
+    "drive.google.com",
+    "calendar.google.com",
+    "notion.so",
+    "github.com",
+    "gitlab.com",
+    "linear.app",
+    "figma.com",
+    "canva.com",
+    "bulkpictools.com"
+  ],
+
+  "imageFilter": {
+    "minWidth": 200,
+    "minHeight": 200
+  },
+
+  "tools": [
+    { "slug": "image-compressor",    "label": { "zh": "图片压缩",        "en": "Compress" },           "icon": "Compress",   "enabled": true, "order": 1 },
+    { "slug": "image-resizer",       "label": { "zh": "调整尺寸",        "en": "Resize" },             "icon": "Maximize",   "enabled": true, "order": 2 },
+    { "slug": "image-cropper",       "label": { "zh": "在线裁剪",        "en": "Crop" },               "icon": "Crop",       "enabled": true, "order": 3 },
+    { "slug": "image-watermark",     "label": { "zh": "图片水印",        "en": "Watermark" },          "icon": "Shield",     "enabled": true, "order": 4 },
+    { "slug": "remove-background",   "label": { "zh": "移除背景",        "en": "Remove BG" },          "icon": "Image",      "enabled": true, "order": 5 },
+    { "slug": "to-webp",             "label": { "zh": "转 WebP",         "en": "To WebP" },            "icon": "RefreshCw",  "enabled": true, "order": 6 },
+    { "slug": "to-png",              "label": { "zh": "转 PNG",          "en": "To PNG" },             "icon": "RefreshCw",  "enabled": true, "order": 7 },
+    { "slug": "to-jpg",              "label": { "zh": "转 JPG",          "en": "To JPG" },             "icon": "RefreshCw",  "enabled": true, "order": 8 },
+    { "slug": "to-gif",              "label": { "zh": "转 GIF",          "en": "To GIF" },             "icon": "RefreshCw",  "enabled": true, "order": 9 },
+    { "slug": "image-converter",     "label": { "zh": "格式转换",        "en": "Convert" },            "icon": "Shuffle",    "enabled": true, "order": 10 },
+    { "slug": "image-editor",        "label": { "zh": "在线编辑",        "en": "Edit" },               "icon": "Edit",       "enabled": true, "order": 11 },
+    { "slug": "flip-image",          "label": { "zh": "翻转图片",        "en": "Flip" },               "icon": "FlipHorizontal", "enabled": true, "order": 12 },
+    { "slug": "add-text-to-image",   "label": { "zh": "图片加字",        "en": "Add Text" },           "icon": "Type",       "enabled": true, "order": 13 },
+    { "slug": "round-corner",        "label": { "zh": "圆角处理",        "en": "Round Corner" },       "icon": "Radius",     "enabled": true, "order": 14 },
+    { "slug": "blur-image",          "label": { "zh": "图片模糊",        "en": "Blur" },               "icon": "Blur",       "enabled": true, "order": 15 },
+    { "slug": "ig-resize",           "label": { "zh": "Ins 尺寸",        "en": "IG Resize" },          "icon": "Smartphone", "enabled": true, "order": 16 },
+    { "slug": "fb-resize",           "label": { "zh": "FB 尺寸",         "en": "FB Resize" },          "icon": "Facebook",   "enabled": true, "order": 17 },
+    { "slug": "twitter-resize",      "label": { "zh": "Twitter 尺寸",    "en": "X Resize" },           "icon": "Twitter",    "enabled": true, "order": 18 },
+    { "slug": "yt-thumbnail",        "label": { "zh": "YouTube 封面",    "en": "YT Thumbnail" },       "icon": "Youtube",    "enabled": true, "order": 19 },
+    { "slug": "bg-remover",          "label": { "zh": "AI 去背景",       "en": "AI BG Remover" },      "icon": "Wand",       "enabled": true, "order": 20 },
+    { "slug": "passport-photo",      "label": { "zh": "证件照",          "en": "Passport Photo" },     "icon": "IdCard",     "enabled": true, "order": 21 },
+    { "slug": "instagram-resizer",   "label": { "zh": "Instagram 尺寸",  "en": "IG Resizer" },         "icon": "Instagram",  "enabled": true, "order": 22 },
+    { "slug": "facebook-image-resizer", "label": { "zh": "Facebook 尺寸", "en": "FB Image Resizer" }, "icon": "Facebook",   "enabled": true, "order": 23 },
+    { "slug": "youtube-thumbnail-resizer", "label": { "zh": "YouTube 封面", "en": "YT Thumbnail" },  "icon": "Youtube",    "enabled": true, "order": 24 }
+  ],
+
+  "sites": {
+    "default": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-cropper", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200,
+      "buttonPosition": "top-left"
+    },
+
+    "doubao.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200,
+      "imageSelector": "img[src*='byteimg.com']",
+      "skipContainerSelector": "header, nav, [data-testid='file_drop_area']"
+    },
+
+    "midjourney.com": {
+      "quickTool": "image-resizer",
+      "menuTools": ["image-resizer", "image-compressor", "image-watermark", "image-cropper", "remove-background"],
+      "minWidth": 300,
+      "minHeight": 300
+    },
+
+    "app.leonardo.ai": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "stability.ai": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "dream.ai": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "ideogram.ai": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "playground.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "civitai.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "to-webp", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "adobe.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-cropper", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "bing.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "openai.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "chatgpt.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "claude.ai": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-cropper", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "gemini.google.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "kimi.moonshot.cn": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "yuanbao.tencent.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "tongyi.aliyun.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "yuewen.cn": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "xinghuo.xfyun.cn": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "hailuoai.video": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "jimeng.jianying.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200,
+      "imageSelector": "img[src*='byteimg.com']",
+      "skipContainerSelector": "header, nav"
+    },
+
+    "xingyuan.baidu.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "poe.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "perplexity.ai": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "grok.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "pinterest.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "remove-background", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200,
+      "buttonPosition": "top-right"
+    },
+
+    "unsplash.com": {
+      "quickTool": "image-compressor",
+      "menuTools": ["image-compressor", "image-resizer", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "instagram.com": {
+      "quickTool": "instagram-resizer",
+      "menuTools": ["instagram-resizer", "image-compressor", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200,
+      "buttonPosition": "top-right"
+    },
+
+    "twitter.com": {
+      "quickTool": "image-resizer",
+      "menuTools": ["image-resizer", "image-compressor", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "x.com": {
+      "quickTool": "image-resizer",
+      "menuTools": ["image-resizer", "image-compressor", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "youtube.com": {
+      "quickTool": "youtube-thumbnail-resizer",
+      "menuTools": ["youtube-thumbnail-resizer", "image-compressor", "image-watermark", "to-webp"],
+      "minWidth": 200,
+      "minHeight": 200
+    },
+
+    "facebook.com": {
+      "quickTool": "facebook-image-resizer",
+      "menuTools": ["facebook-image-resizer", "image-compressor", "image-watermark", "remove-background"],
+      "minWidth": 200,
+      "minHeight": 200
+    }
+  }
+}
