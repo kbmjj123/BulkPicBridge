@@ -63,8 +63,8 @@
       <div v-if="extractedImages.length > 0" class="px-3 pb-2">
         <div class="flex items-center justify-between text-xs text-[#a8a29e] pt-1 mb-2">
           <span>{{ t('popup.foundImages', [extractedImages.length]) }}</span>
-          <button class="text-xs text-[#818cf8] bg-none border-none cursor-pointer p-0" @click="sendAllImages">
-            {{ t('popup.sendAll') }} ↗
+          <button class="text-xs text-[#818cf8] bg-none border-none cursor-pointer p-0 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="isSending" @click="sendAllImages">
+            {{ isSending ? '发送中...' : (t('popup.sendAll') + ' ↗') }}
           </button>
         </div>
         <div class="grid grid-cols-5 gap-1">
@@ -85,10 +85,15 @@
         </div>
         <button
           v-if="selectedImages.size > 0"
-          class="w-full mt-2 py-2 bg-[#4f46e5] hover:bg-[#6366f1] text-white font-semibold rounded-[6px] text-sm transition-colors cursor-pointer"
+          class="w-full mt-2 py-2 bg-[#4f46e5] hover:bg-[#6366f1] text-white font-semibold rounded-[6px] text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="isSending"
           @click="sendSelectedImages"
         >
-          {{ t('popup.sendSelected', [selectedImages.size]) }} ↗
+          <span v-if="!isSending">{{ t('popup.sendSelected', [selectedImages.size]) }} ↗</span>
+          <span v-else class="flex items-center justify-center gap-2">
+            <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span>
+            发送中...
+          </span>
         </button>
       </div>
     </transition>
@@ -133,6 +138,7 @@ const { t } = i18n;
 const isActive = ref(false);
 const currentPlatform = ref('');
 const isExtracting = ref(false);
+const isSending = ref(false);
 
 
 interface ExtractedImage {
@@ -232,13 +238,19 @@ function sendSelectedImages() {
 }
 
 async function sendImages(urls: string[]) {
-  if (urls.length === 0) return;
-  // 通过 background 处理大批量
-  await browser.runtime.sendMessage({
-    type: 'OPEN_BULK_IMPORT',
-    urls,
-  });
-  window.close();
+  if (urls.length === 0 || isSending.value) return;
+  isSending.value = true;
+  try {
+    // 通过 background 处理大批量
+    await browser.runtime.sendMessage({
+      type: 'OPEN_BULK_IMPORT',
+      urls,
+    });
+    window.close();
+  } catch (err) {
+    logger.error('[Popup] 发送失败:', err);
+    isSending.value = false;
+  }
 }
 
 /**
