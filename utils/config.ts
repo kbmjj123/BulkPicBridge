@@ -316,7 +316,8 @@ export const DEFAULT_CONFIG: RemoteConfig = {
 			"quickTool": "image-compressor",
 			"menuTools": ["image-compressor", "image-resizer", "image-cropper", "image-watermark", "remove-background"],
 			"minWidth": 200,
-			"minHeight": 200
+			"minHeight": 200,
+			"buttonPosition": "top-left"
 		},
 
 		"doubao.com": {

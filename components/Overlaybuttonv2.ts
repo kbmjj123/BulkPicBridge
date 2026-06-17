@@ -21,6 +21,7 @@ let globalShadow: ShadowRoot | null = null;
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
 let currentTarget: HTMLElement | null = null;
 let menuVisible = false;
+let currentPosition: 'top-left' | 'top-right' | 'bottom-right' | 'bottom-left' | 'top-center' = 'top-left';
 
 // 已选中的图片队列（checkbox 选中的）
 const selectedImages = new Map<HTMLElement, { url: string; thumbnail: string }>();
@@ -356,6 +357,7 @@ function ensureGlobalHost(
 ) {
   if (globalHost) return;
 
+  currentPosition = siteConfig.buttonPosition ?? 'top-left';
   globalHost = document.createElement('div');
   globalHost.setAttribute('data-bulkpic-host', 'true');
   globalHost.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;pointer-events:none;';
@@ -486,9 +488,36 @@ function positionButtons(target: HTMLElement) {
   if (!btnGroup) return;
 
   const rect = target.getBoundingClientRect();
-  // 三个按钮 28px × 3 + gap 3px × 2 = 90px，右对齐留 8px
-  const x = rect.right - 90 - 8;
-  const y = rect.top + 8;
+  const G = 8;      // gap / padding
+  const GW = 90;    // 按钮组总宽
+  const BH = 28;    // 单按钮高
+
+  let x: number, y: number;
+  switch (currentPosition) {
+    case 'top-left':
+      x = rect.left + G;
+      y = rect.top + G;
+      break;
+    case 'top-right':
+      x = rect.right - GW - G;
+      y = rect.top + G;
+      break;
+    case 'bottom-right':
+      x = rect.right - GW - G;
+      y = rect.bottom - BH - G;
+      break;
+    case 'bottom-left':
+      x = rect.left + G;
+      y = rect.bottom - BH - G;
+      break;
+    case 'top-center':
+      x = rect.left + rect.width / 2 - GW / 2;
+      y = rect.top + G;
+      break;
+    default:
+      x = rect.left + G;
+      y = rect.top + G;
+  }
 
   btnGroup.style.left = `${x}px`;
   btnGroup.style.top = `${y}px`;
@@ -505,6 +534,7 @@ function positionButtons(target: HTMLElement) {
     }
   }
 }
+
 
 function showButtons(target: HTMLElement) {
   if (!globalShadow) return;
